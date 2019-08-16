@@ -1,0 +1,38 @@
+program = _{ SOI ~ stmts ~ EOI }
+code = { "{" ~ stmts ~ "}" }
+stmts = _{ (stmt ~ ";")* ~ (stmt ~ ";"?)? }
+stmt = _{ expr }
+
+expr = {
+    whilestmt |
+    ifstmt |
+    assgmtExpr |
+    privateAssgmtExpr |
+    monadicExpr |
+    dyadicExpr |
+    terms
+}
+
+whilestmt = { "while" ~ code ~ "do" ~ code }
+ifstmt = { "if" ~ "(" ~ expr ~ ")" ~ "then" ~ code ~ ("else" ~ code)? }
+
+assgmtExpr = { ident ~ "=" ~ expr }
+privateAssgmtExpr = { "private" ~ assgmtExpr }
+
+terms = { term+ }
+
+term = _{ decimal | integer | ident | string | "(" ~ expr ~ ")" | code  }
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+integer = @{ "_"? ~ ASCII_DIGIT+ }
+decimal = @{ "_"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+string = @{ "\"" ~ ( "\"\"" | (!"\"" ~ ANY) )* ~ "\"" }
+
+monadicExpr = { verb ~ expr }
+dyadicExpr = { (monadicExpr | terms) ~ verb ~ expr }
+verb = {
+  "-"  | "%" | "/"
+  | "+"  | "*"  | "<"  | "==" | "^" | "||"
+  | ">"  | "<=" | ">="
+}
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
