@@ -17,7 +17,7 @@ pub struct AST {
 }
 impl AST {
     pub fn replace_ident(&mut self, ident: &str, value: &str) {
-        println!("== REPLACE");
+        println!("== REPLACE {}", ident);
         for node in &mut self.ast {
             println!("{:?}", node);
             node.replace_ident(ident, value);
@@ -34,13 +34,23 @@ impl AST {
     }
 }
 
+impl ToString for AST {
+    fn to_string(&self) -> String {
+        let mut output = String::new();
+        for node in &self.ast {
+            output.push_str(&node.to_string());
+        }
+        output
+    }
+}
+
 pub fn parse(source: &str) -> Result<AST, Error<Rule>> {
     let mut ast = vec![];
     
     let pairs = Arma3Parser::parse(Rule::program, source)?;
     for pair in pairs {
         match pair.as_rule() {
-            Rule::expr => ast.push(Node::from_expr(pair)),
+            Rule::stmt => ast.push(Node::from_expr(pair)),
             _ => {
                 println!("Unimplement Pair: {:?}", pair);
             }

@@ -1,7 +1,7 @@
 program = _{ SOI ~ stmts ~ EOI }
 code = { "{" ~ stmts ~ "}" }
 stmts = _{ (stmt ~ ";")* ~ (stmt ~ ";"?)? }
-stmt = _{ expr }
+stmt = { expr }
 
 expr = {
     whilestmt |
@@ -23,8 +23,8 @@ terms = { term+ }
 
 term = _{ decimal | integer | ident | string | "(" ~ expr ~ ")" | code  }
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-integer = @{ "_"? ~ ASCII_DIGIT+ }
-decimal = @{ "_"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+integer = @{ ASCII_DIGIT+ }
+decimal = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
 string = @{ "\"" ~ ( "\"\"" | (!"\"" ~ ANY) )* ~ "\"" }
 
 monadicExpr = { verb ~ expr }

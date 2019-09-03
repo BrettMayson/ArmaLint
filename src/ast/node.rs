@@ -1,7 +1,11 @@
 use super::{DyadicVerb, Rule};
 
+#[macro_use]
+use crate::macros;
+
 #[derive(Debug, Clone)]
 pub enum Node {
+    Statement(Box<Node>),
     Integer(i32),
     Str(String),
     Ident(String),
@@ -11,7 +15,7 @@ pub enum Node {
     Binary,
     Expression(Box<Node>),
     Terms(Vec<Box<Node>>),
-    Code(Box<Node>),
+    Code(Vec<Box<Node>>),
     DyadicOp {
         verb: DyadicVerb,
         lhs: Box<Node>,
@@ -31,12 +35,19 @@ pub enum Node {
 impl Node {
     pub fn from_expr(pair: pest::iterators::Pair<Rule>) -> Node {
         match pair.as_rule() {
+            Rule::stmt => Node::Statement(Box::new(Node::from_expr(pair.into_inner().next().unwrap()))),
             Rule::expr => Node::from_expr(pair.into_inner().next().unwrap()),
             Rule::terms => {
                 Node::Terms(pair.into_inner().map(|p| Node::from_expr(p)).map(|i| Box::new(i)).collect())
             },
             Rule::code => {
-                Node::Code(Box::new(Node::from_expr(pair.into_inner().next().unwrap())))
+                let mut stmts = Vec::new();
+                let mut inner = pair.into_inner();
+                while let Some(n) = inner.next() {
+                    stmts.push(Box::new(Node::from_expr(n)))
+                }
+                //Node::Code(Box::new(Node::from_expr(pair.into_inner().next().unwrap())))
+                Node::Code(stmts)
             },
             Rule::ident => Node::Ident(pair.as_str().to_owned()),
             Rule::assgmtExpr => {
@@ -93,7 +104,7 @@ impl Node {
                 Node::Str(pair.as_str().to_owned())
             }
             _ => {
-                println!("Unimplement Pair: {:#?}", pair);
+                println!("Unimplement Expr: {:#?}", pair);
                 unimplemented!()
             }
         }
@@ -106,6 +117,9 @@ impl Node {
                     term.replace_ident(ident, value);
                 }
             },
+            Node::Statement(node) => {
+                node.replace_ident(ident, value);
+            }
             Node::Ident(s) => {
                 if s == ident {
                     *s = value.to_string();
@@ -116,8 +130,8 @@ impl Node {
     }
 }
 
-impl ToString for Node {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         match self {
             Node::Terms(terms) => {
                 let mut output = String::new();
@@ -125,11 +139,29 @@ impl ToString for Node {
                     if i != 0 { output.push_str(" ") }
                     output.push_str(&term.to_string());
                 }
-                output
+                write!(f, "{}", output)
             },
-            Node::Ident(s) => {
-                s.to_string()
+            Node::Variable {ident, expr, private} => {
+                if *private {
+                    write!(f, "private {} = {}", ident, expr)
+                } else {
+                    write!(f, "{} = {}", ident, expr)
+                }
             },
+            Node::If {expr, positive, negative} => {
+                write!(f, "if ({}) then {}", expr, positive)?;
+                if let Some(neg) = negative {
+                    write!(f, " else {}", neg)?;
+                }
+                Ok(())
+            },
+            Node::Statement(v) => write!(f, "{};\n", v),
+            Node::While {expr, stmt} => write!(f, "while {} do {}", expr, stmt),
+            Node::DyadicOp {verb, lhs, rhs} => write!(f, "{} {} {}", lhs, verb, rhs),
+            Node::Code(terms) => write!(f, "{{\n{}}}", indent!(terms.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\n"))),
+            Node::Ident(s) => write!(f, "{}", s.to_string()),
+            Node::Integer(v) => write!(f, "{}", v),
+            Node::Str(v) => write!(f, "{}", v),
             _ => { 
                 println!("{:?}", self);
                 unimplemented!()

@@ -1,0 +1,51 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Arma Lint Commands",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#modifiers"
+		},
+		{
+			"include": "#names"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.alcmds",
+				"match": "^(\\s+)(nular|binary|unary)"
+			}]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "entity.name.type.alcmds",
+					"match": "\\b(Object|String|Number|Boolean|Color|Side)\\b"
+				}
+			]
+		},
+		"modifiers": {
+			"name": "entity.name.tag",
+			"match": "(\\+|\\?)"
+		},
+		"comment": {
+			"name": "comment.line.double-slash",
+			"begin": "//",
+			"end": "$"
+		},
+		"names": {
+			"name": "entity.name.function",
+			"match": "^([^\\s:]+)$"
+		}
+	},
+	"scopeName": "source.alcmds"
+}

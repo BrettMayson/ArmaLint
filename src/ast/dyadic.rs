@@ -37,3 +37,14 @@ impl DyadicVerb {
         }
     }
 }
+
+impl std::fmt::Display for DyadicVerb {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            DyadicVerb::Plus => write!(f, "+"),
+            DyadicVerb::Equal => write!(f, "=="),
+            DyadicVerb::LessThan => write!(f, "<"),
+            _ => panic!("Unexpected dyadic verb: {:?}", self),
+        }
+    }
+}

@@ -1,0 +1,17 @@
+file = _ { SOI ~ ("\n" | cmd)* ~ EOI }
+
+cmd = { ident ~ "\n" ~ variant+ }
+
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+variant = { ("\t" | "  "+) ~ cmdtype ~ (":" ~ atype)* ~ "\r"? ~ "\n" }
+
+cmdtype = { "nular" | "unary" | "binary" }
+atype = { array | optional | multiple | single }
+
+array = { "[" ~ (atype ~ ":"?)* ~ "]" }
+optional = { single ~ "?" }
+multiple = { single ~ "+" }
+single = { "Boolean" | "String" | "Color" | "String" | "Object" | "Number" | "Side" }
+
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" }
+WHITESPACE = _{"\r"}

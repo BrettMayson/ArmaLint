@@ -1,0 +1,25 @@
+{
+    "name": "armalint",
+    "displayName": "armalint",
+    "description": "Linting for Arma files",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.37.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "alcmds",
+            "aliases": ["Arma Lint Commands", "alcmds"],
+            "extensions": ["alcmds"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "alcmds",
+            "scopeName": "source.alcmds",
+            "path": "./syntaxes/alcmds.tmLanguage.json"
+        }]
+    }
+}

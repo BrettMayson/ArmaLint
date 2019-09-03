@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use regex::Regex;
 
 use crate::ast::AST;
-use crate::Context;
 
 #[derive(Debug, Clone)]
 pub struct Macro {
@@ -23,8 +24,7 @@ impl Macro {
     }
 }
 
-pub fn parse(content: &str, context: Context) -> Result<String, String> {
-    // #define
+pub fn macros(content: &str) -> Result<(String, Vec<Macro>), String> {
     let re_define = Regex::new(r"(?m)#define(?:\s+?)([^\s]+?)\((.+)\)\s+?(.+)").unwrap();
 
     let mut macros = Vec::new();
@@ -41,18 +41,23 @@ pub fn parse(content: &str, context: Context) -> Result<String, String> {
     println!("{:#?}", macros);
 
     let mut source = re_define.replace_all(content, "").to_string();
+    Ok((source, macros))
+}
 
-    for mac in macros {
+pub fn sqf(ast: AST, macros: Vec<Macro>) -> Result<AST, String> {
+
+    /*for mac in macros {
         let re = Regex::new(&format!(r#"(?m){}\(({})\)"#, mac.name, mac.args())).unwrap();
-        source = re.replace(&source, |caps: &regex::Captures| {
+        source = re.replace_all(&source, |caps: &regex::Captures| {
             println!("{:?}", caps);
             let mut ast = mac.ast.clone();
             for (i, arg) in mac.args.iter().enumerate() {
+                println!("Replacing {} with {}", arg, &caps[i + 1]);
                 ast.replace_ident(arg, &caps[i + 1]);
             }
             ast.render()
         }).to_string();
-    }
+    }*/
 
-    Ok(source)
+    Ok(ast)
 }

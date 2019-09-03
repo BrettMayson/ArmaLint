@@ -1,0 +1,60 @@
+systemChat
+    unary:String
+
+globalChat
+    binary:Object:String
+
+sideChat
+    binary:Object:String
+
+groupChat
+    binary:Object:String
+
+vehicleChat
+    binary:Object:String
+
+commandChat
+    binary:Object:String
+
+customChat
+    binary:Object:[Number:String]
+
+// Radio
+
+directSay
+    binary:Object:String
+
+sideRadio
+    binary:[Side:String]:String
+
+groupRadio
+    binary:Object:String
+
+vehicleRadio
+    binary:Object:String
+
+globalRadio
+    binary:Object:String
+
+commandRadio
+    binary:Object:String
+
+customRadio
+    binary:Object:[Number:String]
+
+// Radio Channels
+
+radioChannelCreate
+    unary:[Color:String:String:[Object+]:Boolean?]
+
+radioChannelAdd
+    binary:Number:[Object+]
+
+radioChannelRemove
+    binary:Number:[Object+]
+
+radioChannelSetCallSign
+    binary:Number:String
+
+radioChannelSetLabel
+    binary:Number:String
