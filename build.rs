@@ -69,7 +69,7 @@ fn from_cmd(pair: pest::iterators::Pair<Rule>) -> CMD {
                 name: inner.next().unwrap().as_str().to_owned(),
                 variants: Vec::new(),
             };
-            while let Some(variant) = inner.next() {
+            for variant in inner {
                 let mut inner = variant.into_inner();
                 cmd.variants.push(match inner.next().unwrap().as_str() {
                     "nular" => Signature::Nular,

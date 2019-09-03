@@ -33,7 +33,7 @@ pub fn macros(content: &str) -> Result<(String, Vec<Macro>), String> {
         println!("{:?}", cap);
         macros.push(Macro {
             name: cap[1].to_string(),
-            args: cap[2].split(",").map(|i| i.to_owned()).collect(),
+            args: cap[2].split(',').map(|i| i.to_owned()).collect(),
             expr: cap[3].to_string(),
             ast:  crate::ast::parse(&cap[3]).unwrap(),
         });
