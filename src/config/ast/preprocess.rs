@@ -32,24 +32,29 @@ impl PreProcessor {
             Statement::Config(c) => c,
             _ => return Err(ArmaLintError::PreprocessNotRoot),
         };
-        ast.config.statement = Statement::Config(self.process_nodes(config)?);
+        ast.config.statement = Statement::Config(self.process_nodes(config, None)?);
         Ok(ast)
     }
 
-    pub fn process_nodes(&mut self, nodes: Vec<Node>) -> ResultNodeVec {
+    pub fn process_nodes(&mut self, nodes: Vec<Node>, root_node: Option<Node>) -> ResultNodeVec {
         Ok(nodes
             .into_iter()
-            .map(|x| self.process_node(x))
+            .map(|x| self.process_node(x, root_node.clone()))
             .collect::<Result<Vec<Node>, ArmaLintError>>()?)
     }
 
-    pub fn process_node(&mut self, node: Node) -> Result<Node, ArmaLintError> {
+    pub fn process_node(
+        &mut self,
+        node: Node,
+        macro_root: Option<Node>,
+    ) -> Result<Node, ArmaLintError> {
         let mut node = node.clone();
+        let node_clone = node.clone();
         match &mut node.statement {
             Statement::Property { ident, value } => {
                 node.statement = Statement::Property {
-                    ident: Box::new(self.process_node(*ident.clone())?),
-                    value: Box::new(self.process_node(*value.clone())?),
+                    ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
+                    value: Box::new(self.process_node(*value.clone(), macro_root.clone())?),
                 };
             }
             Statement::Class {
@@ -58,20 +63,20 @@ impl PreProcessor {
                 props,
             } => {
                 node.statement = Statement::Class {
-                    ident: Box::new(self.process_node(*ident.clone())?),
+                    ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
                     extends: if let Some(e) = extends {
-                        Some(Box::new(self.process_node(*e.clone())?))
+                        Some(Box::new(self.process_node(*e.clone(), macro_root.clone())?))
                     } else {
                         None
                     },
-                    props: self.process_nodes(props.to_vec())?,
+                    props: self.process_nodes(props.to_vec(), macro_root.clone())?,
                 }
             }
             Statement::Array(values) => {
                 node.statement = Statement::Array(
                     values
                         .iter()
-                        .map(|x| self.process_node(x.clone()))
+                        .map(|x| self.process_node(x.clone(), macro_root.clone()))
                         .collect::<ResultNodeVec>()?,
                 );
             }
@@ -86,7 +91,11 @@ impl PreProcessor {
             }
             Statement::LINE => {
                 node.statement = Statement::Processed(
-                    Box::new(Statement::Integer(node.start.0 as i32)),
+                    Box::new(Statement::Integer(if let Some(root) = macro_root {
+                        root.start.0 as i32
+                    } else {
+                        node.start.0 as i32
+                    })),
                     Box::new(node.statement),
                 );
             }
@@ -101,16 +110,17 @@ impl PreProcessor {
                 }
             }
             Statement::ClassDef(ident) => {
-                node.statement = Statement::ClassDef(Box::new(self.process_node(*ident.clone())?));
+                node.statement =
+                    Statement::ClassDef(Box::new(self.process_node(*ident.clone(), macro_root)?));
             }
             Statement::Config(nodes) => {
-                node.statement = Statement::Config(self.process_nodes(nodes.to_vec())?);
+                node.statement = Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
             }
             // Directives
             Statement::Define { ident, value } => {
                 self.defines.remove(ident);
                 self.macros.remove(ident);
-                let data = self.process_node(*value.clone())?;
+                let data = self.process_node(*value.clone(), macro_root.clone())?;
                 self.defines.insert(ident.to_string(), data);
             }
             Statement::DefineMacro { ident, args, value } => {
@@ -136,11 +146,27 @@ impl PreProcessor {
                     } else {
                         let old_defines = self.defines.clone();
                         for (i, val) in args.iter().enumerate() {
-                            let macro_body = self.process_node(val.clone())?;
+                            let macro_body = self.process_node(
+                                val.clone(),
+                                if node_clone.file.starts_with("MACRO:") {
+                                    macro_root.clone()
+                                } else {
+                                    Some(node_clone.clone())
+                                },
+                            )?;
                             self.defines
                                 .insert(mac_args.get(i).unwrap().to_string(), macro_body);
                         }
-                        node.statement = self.process_node(mac_node)?.statement;
+                        node.statement = self
+                            .process_node(
+                                mac_node,
+                                if node_clone.file.starts_with("MACRO:") {
+                                    macro_root.clone()
+                                } else {
+                                    Some(node_clone.clone())
+                                },
+                            )?
+                            .statement;
                         self.defines = old_defines;
                     }
                 } else {
@@ -159,7 +185,14 @@ impl PreProcessor {
                             output.push(c);
                         }
                         _ => {
-                            let val = self.process_node(inner_arg.clone())?;
+                            let val = self.process_node(
+                                inner_arg.clone(),
+                                if node_clone.file.starts_with("MACRO:") {
+                                    macro_root.clone()
+                                } else {
+                                    Some(node_clone.clone())
+                                },
+                            )?;
                             match val.statement {
                                 Statement::Processed(s, _) => {
                                     node.statement = *s;
@@ -195,7 +228,17 @@ impl PreProcessor {
                             output.push(c);
                         }
                         Statement::MacroCall { ident: _, args: _ } => {
-                            match self.process_node(child.clone())?.statement {
+                            match self
+                                .process_node(
+                                    child.clone(),
+                                    if node_clone.file.starts_with("MACRO:") {
+                                        macro_root.clone()
+                                    } else {
+                                        Some(node_clone.clone())
+                                    },
+                                )?
+                                .statement
+                            {
                                 Statement::InternalStr(s) => {
                                     output.push_str(&s);
                                 }
@@ -234,9 +277,9 @@ impl PreProcessor {
             } => {
                 node.statement =
                     if self.defines.contains_key(ident) || self.macros.contains_key(ident) {
-                        Statement::Inserted(self.process_nodes(positive.to_vec())?)
+                        Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
                     } else if let Some(n) = negative {
-                        Statement::Inserted(self.process_nodes(n.to_vec())?)
+                        Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
                     } else {
                         Statement::Gone
                     };
