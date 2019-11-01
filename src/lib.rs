@@ -5,6 +5,8 @@ extern crate pest_derive;
 #[macro_use]
 pub mod macros;
 
-pub mod sqf;
-pub mod preprocess;
-pub mod ast;
+mod error;
+pub use error::ArmaLintError;
+
+//pub mod sqf;
+pub mod config;

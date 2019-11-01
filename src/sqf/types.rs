@@ -1,4 +1,4 @@
-use crate::ast::Node;
+use super::ast::Node;
 
 pub enum Type {
     _Array(Vec<Type>),

@@ -5,8 +5,8 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use pest::Parser;
 use pest::error::Error;
+use pest::Parser;
 
 #[derive(Parser)]
 #[grammar = "grammars/cmds.pest"]
@@ -49,14 +49,15 @@ fn main() {
             Rule::cmd => {
                 println!("{:?}", pair);
                 cmds.push(from_cmd(pair));
-            },
+            }
             Rule::EOI => {
                 println!("Done!");
             }
             _ => {
                 println!("=======unimplemented=======");
                 println!("{:?}", pair);
-                unimplemented!()}
+                unimplemented!()
+            }
         }
     }
 }
@@ -78,12 +79,12 @@ fn from_cmd(pair: pest::iterators::Pair<Rule>) -> CMD {
                         atype(inner.next().unwrap()),
                         atype(inner.next().unwrap()),
                     ),
-                    _ => unimplemented!()
+                    _ => unimplemented!(),
                 });
             }
             println!("CMD Added - {:#?}", cmd);
             cmd
-        },
+        }
         _ => {
             println!("Unimplement Pair: {:#?}", pair);
             unimplemented!()
@@ -105,7 +106,7 @@ fn atype(pair: pest::iterators::Pair<Rule>) -> Type {
                 types.push(atype(item));
             }
             Type::_Array(types)
-        },
-        _ => unimplemented!()
+        }
+        _ => unimplemented!(),
     }
 }

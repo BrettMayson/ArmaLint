@@ -1,0 +1,60 @@
+file = { SOI ~ config  }
+config = { items ~ EOI }
+items = _{ ((( prop | class | classextends | classdef | (!"#" ~ macro_call) ) ~ ";") | directive)* }
+
+prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array ) }
+
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+value = _{
+    bool |
+    integer |
+    float |
+    string_wrapper |
+    special |
+    unquoted
+}
+
+identarray = ${ ident ~ "[]" }
+
+bool = @{ "true" | "false" }
+integer = @{ ASCII_DIGIT+ }
+float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+string_wrapper = _{ "\"" ~ string ~ "\"" }
+string = @{ ( "\"\"" | (!"\"" ~ ANY) )* }
+unquoted = ${ ( macro_call | "\\\n" | "\\\r\n" | char )* }
+char = { !("\n" | ";") ~ ANY }
+
+special = { "__FILE__" | "__LINE__" }
+
+array = { "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
+
+classdef = { "class " ~ ident ~ !"{"}
+class = { "class " ~ ident ~ "{" ~ items ~ "}" }
+classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ items ~ "}" }
+
+macro_call = ${ ident ~ "(" ~ macro_call_args ~ ")" }
+macro_call_args = { macro_call_arg ~ ("," ~ macro_call_arg)* }
+macro_call_arg = { string_wrapper | special | (macro_call | macro_arg_char)* }
+macro_arg_char = { !(")" | ",") ~ ANY }
+
+
+// Directives
+
+directive = _{ include | define | define_macro | undef | ifdef }
+
+include = { "#include" ~ string_wrapper | "#include" ~ "<" ~ include_file ~ ">" }
+include_file = @{ ( (!">" ~ ANY) )* }
+
+define = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_whitespace ~ value }
+define_whitespace = _{ " " }
+
+define_macro = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_macro_args ~ define_whitespace+ ~ define_macro_body }
+define_macro_args = !{"(" ~ ident ~ ("," ~ ident)* ~ ")" }
+define_macro_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ ~ "\n" }
+
+undef = ${ "#undef" ~ WHITESPACE+ ~ ident ~ "\n" }
+ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n#else\n" ~ conditional_block)? ~ "\n#endif" }
+conditional_block = !{ items }
+
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+WHITESPACE = _{ " " | "\t" | "\r" | (!"\\" ~ "\n") }

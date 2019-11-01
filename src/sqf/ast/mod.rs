@@ -8,7 +8,7 @@ mod node;
 pub use node::Node;
 
 #[derive(Parser)]
-#[grammar = "grammars/arma3.pest"]
+#[grammar = "sqf/sqf.pest"]
 pub struct Arma3Parser;
 
 #[derive(Debug, Clone)]

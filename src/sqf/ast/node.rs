@@ -92,12 +92,8 @@ impl Node {
                 let stmt = Box::new(Node::from_expr(pair.next().unwrap()));
                 Node::While { expr, stmt }
             }
-            Rule::integer => {
-                Node::Integer(pair.as_str().parse().unwrap())
-            },
-            Rule::string => {
-                Node::Str(pair.as_str().to_owned())
-            }
+            Rule::integer => Node::Integer(pair.as_str().parse().unwrap()),
+            Rule::string => Node::Str(pair.as_str().to_owned()),
             _ => {
                 println!("Unimplement Expr: {:#?}", pair);
                 unimplemented!()
