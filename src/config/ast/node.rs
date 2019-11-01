@@ -1,6 +1,6 @@
 use super::{Rule, Statement};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Node {
     pub file: String,
     pub start: (usize, usize),
@@ -25,7 +25,6 @@ impl Node {
             start: pair.as_span().start_pos().line_col(),
             end: pair.as_span().end_pos().line_col(),
             statement: match pair.as_rule() {
-                Rule::EOI => Statement::EOI,
                 Rule::config => Statement::Config(
                     pair.into_inner()
                         .map(|x| Node::from_expr(file, source, x, resolver))
@@ -95,6 +94,7 @@ impl Node {
                         .map(|x| Node::from_expr(file, source, x, resolver))
                         .collect::<ResultNodeVec>()?,
                 ),
+                Rule::float => Statement::Float(pair.as_str().parse().unwrap()),
                 Rule::integer => Statement::Integer(pair.as_str().parse().unwrap()),
                 Rule::string => Statement::Str(String::from(pair.as_str())),
                 Rule::ident => Statement::Ident(String::from(pair.as_str())),
@@ -102,13 +102,11 @@ impl Node {
                     Statement::IdentArray(String::from(pair.into_inner().next().unwrap().as_str()))
                 }
                 Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
-                Rule::unquoted => {
-                    Statement::Unquoted(
-                        pair.into_inner()
-                            .map(|x| Node::from_expr(file, source, x, resolver))
-                            .collect::<ResultNodeVec>()?,
-                    )
-                }
+                Rule::unquoted => Statement::Unquoted(
+                    pair.into_inner()
+                        .map(|x| Node::from_expr(file, source, x, resolver))
+                        .collect::<ResultNodeVec>()?,
+                ),
                 // Special
                 Rule::special => match pair.as_str() {
                     "__FILE__" => Statement::FILE,

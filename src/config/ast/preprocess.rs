@@ -106,7 +106,6 @@ impl PreProcessor {
             Statement::Config(nodes) => {
                 node.statement = Statement::Config(self.process_nodes(nodes.to_vec())?);
             }
-            Statement::EOI => {}
             // Directives
             Statement::Define { ident, value } => {
                 self.defines.remove(ident);
@@ -200,7 +199,10 @@ impl PreProcessor {
                                 Statement::InternalStr(s) => {
                                     output.push_str(&s);
                                 }
-                                _ => panic!("Unquoted.MacroCall needs to handle: {:#?}", child.statement),
+                                _ => panic!(
+                                    "Unquoted.MacroCall needs to handle: {:#?}",
+                                    child.statement
+                                ),
                             }
                         }
                         _ => panic!("Unquoted needs to handle: {:#?}", child.statement),

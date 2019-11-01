@@ -75,7 +75,6 @@ impl Renderer {
             Statement::Processed(stmt, _) => output.push_str(&Renderer::render_statement(*stmt)?),
             Statement::Defined(node) => output.push_str(&Renderer::render_node(*node.clone())?),
             Statement::Inserted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),
-            Statement::EOI => {}
             Statement::Define { ident: _, value: _ } => {}
             Statement::DefineMacro {
                 ident: _,

@@ -1,5 +1,5 @@
-file = { SOI ~ config  }
-config = { items ~ EOI }
+file = { SOI ~ config ~ EOI }
+config = { items }
 items = _{ ((( prop | class | classextends | classdef | (!"#" ~ macro_call) ) ~ ";") | directive)* }
 
 prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array ) }
@@ -7,8 +7,8 @@ prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array ) }
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 value = _{
     bool |
-    integer |
     float |
+    integer |
     string_wrapper |
     special |
     unquoted
