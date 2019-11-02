@@ -20,6 +20,7 @@ pub enum Statement {
         props: Vec<Node>,
     },
     ClassDef(Box<Node>),
+    ClassDelete(Box<Node>),
     Ident(String),
     IdentArray(String),
 

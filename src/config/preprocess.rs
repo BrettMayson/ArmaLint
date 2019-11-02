@@ -113,8 +113,14 @@ impl PreProcessor {
                 node.statement =
                     Statement::ClassDef(Box::new(self.process_node(*ident.clone(), macro_root)?));
             }
+            Statement::ClassDelete(ident) => {
+                node.statement = Statement::ClassDelete(Box::new(
+                    self.process_node(*ident.clone(), macro_root)?,
+                ));
+            }
             Statement::Config(nodes) => {
-                node.statement = Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
+                node.statement =
+                    Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
             }
             // Directives
             Statement::Define { ident, value } => {
@@ -275,19 +281,26 @@ impl PreProcessor {
                 positive,
                 negative,
             } => {
-                node.statement =
-                    if self.defines.contains_key(ident) || self.macros.contains_key(ident) {
-                        Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
-                    } else if let Some(n) = negative {
-                        Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
-                    } else {
-                        Statement::Gone
-                    };
+                node.statement = if self.defines.contains_key(ident)
+                    || self.macros.contains_key(ident)
+                {
+                    Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
+                } else if let Some(n) = negative {
+                    Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
+                } else {
+                    Statement::Gone
+                };
             }
-            _ => {
-                println!("No method for {:?}", node);
-                unimplemented!()
-            }
+            // Ignored
+            Statement::Char(_) => {}
+            Statement::Defined(_) => {}
+            Statement::Float(_) => {}
+            Statement::Gone => {}
+            Statement::Inserted(_) => {}
+            Statement::InternalStr(_) => {}
+            Statement::InvalidCall(_, _) => {}
+            Statement::Processed(_, _) => {}
+            Statement::Undefined(_, _) => {}
         }
         Ok(node)
     }

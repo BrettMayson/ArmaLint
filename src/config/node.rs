@@ -71,6 +71,12 @@ impl Node {
                     pair.into_inner().next().unwrap(),
                     resolver,
                 )?)),
+                Rule::classdelete => Statement::ClassDelete(Box::new(Node::from_expr(
+                    file,
+                    source,
+                    pair.into_inner().next().unwrap(),
+                    resolver,
+                )?)),
                 Rule::prop => {
                     let mut parts = pair.into_inner();
                     Statement::Property {
@@ -204,10 +210,21 @@ impl Node {
                         },
                     }
                 }
-                _ => {
-                    println!("Unimplement Expr: {:#?}", pair);
-                    unimplemented!()
-                }
+
+                // Ignored
+                Rule::EOI => unimplemented!(),
+                Rule::file => unimplemented!(),
+                Rule::string_wrapper => unimplemented!(),
+                Rule::items => unimplemented!(),
+                Rule::value => unimplemented!(),
+                Rule::directive => unimplemented!(),
+                Rule::macro_call_args => unimplemented!(),
+                Rule::define_macro_args => unimplemented!(),
+                Rule::include_file => unimplemented!(),
+                Rule::define_whitespace => unimplemented!(),
+                Rule::conditional_block => unimplemented!(),
+                Rule::COMMENT => unimplemented!(),
+                Rule::WHITESPACE => unimplemented!(),
             },
         })
     }

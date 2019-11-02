@@ -1,6 +1,6 @@
 file = { SOI ~ config ~ EOI }
 config = { items }
-items = _{ ((( prop | class | classextends | classdef | (!"#" ~ macro_call) ) ~ ";") | directive)* }
+items = _{ ((( prop | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)* }
 
 prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array ) }
 
@@ -28,9 +28,10 @@ special = { "__FILE__" | "__LINE__" }
 
 array = { "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
 
-classdef = { "class " ~ ident ~ !"{"}
 class = { "class " ~ ident ~ "{" ~ items ~ "}" }
 classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ items ~ "}" }
+classdef = { "class " ~ ident }
+classdelete = { "delete " ~ ident }
 
 macro_call = ${ ident ~ "(" ~ macro_call_args ~ ")" }
 macro_call_args = { macro_call_arg ~ ("," ~ macro_call_arg)* }
