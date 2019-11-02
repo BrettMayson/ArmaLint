@@ -13,6 +13,7 @@ pub enum Statement {
     Property {
         ident: Box<Node>,
         value: Box<Node>,
+        expand: bool,
     },
     Class {
         ident: Box<Node>,
@@ -55,7 +56,8 @@ pub enum Statement {
     Processed(Box<Statement>, Box<Statement>),
     InternalStr(String),
     Undefined(String, Box<Statement>),
-    Defined(Box<Node>),
+    // Definition, Original
+    Defined(Box<Node>, Box<Node>),
     InvalidCall(String, Box<Statement>),
     Inserted(Vec<Node>),
     Gone,

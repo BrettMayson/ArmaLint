@@ -92,6 +92,25 @@ impl Node {
                             parts.next().unwrap(),
                             resolver,
                         )?),
+                        expand: false,
+                    }
+                }
+                Rule::propexpand => {
+                    let mut parts = pair.into_inner();
+                    Statement::Property {
+                        ident: Box::new(Node::from_expr(
+                            file,
+                            source,
+                            parts.next().unwrap(),
+                            resolver,
+                        )?),
+                        value: Box::new(Node::from_expr(
+                            file,
+                            source,
+                            parts.next().unwrap(),
+                            resolver,
+                        )?),
+                        expand: true,
                     }
                 }
                 Rule::bool => Statement::Bool(pair.as_str() == "true"),

@@ -51,10 +51,11 @@ impl PreProcessor {
         let mut node = node.clone();
         let node_clone = node.clone();
         match &mut node.statement {
-            Statement::Property { ident, value } => {
+            Statement::Property { ident, value, expand } => {
                 node.statement = Statement::Property {
                     ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
                     value: Box::new(self.process_node(*value.clone(), macro_root.clone())?),
+                    expand: *expand,
                 };
             }
             Statement::Class {
@@ -101,12 +102,14 @@ impl PreProcessor {
             }
             Statement::Ident(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::Defined(Box::new(s.clone()));
+                    node.statement =
+                        Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::IdentArray(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::Defined(Box::new(s.clone()));
+                    node.statement =
+                        Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::ClassDef(ident) => {
@@ -216,7 +219,7 @@ impl PreProcessor {
                 }
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()))
+                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -260,7 +263,7 @@ impl PreProcessor {
 
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()))
+                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -293,7 +296,7 @@ impl PreProcessor {
             }
             // Ignored
             Statement::Char(_) => {}
-            Statement::Defined(_) => {}
+            Statement::Defined(_, _) => {}
             Statement::Float(_) => {}
             Statement::Gone => {}
             Statement::Inserted(_) => {}

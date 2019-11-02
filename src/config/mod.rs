@@ -94,7 +94,8 @@ fn basic_statement_ast() {
                     start: (1, 13),
                     end: (1, 17),
                     statement: Statement::Bool(true)
-                })
+                }),
+                expand: false,
             },
         }])
     );

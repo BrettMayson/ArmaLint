@@ -30,10 +30,11 @@ impl Renderer {
     pub fn render_statement(statement: Statement) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         match statement {
-            Statement::Property { ident, value } => {
+            Statement::Property { ident, value, expand } => {
                 output.push_str(&format!(
-                    "{} = {};\n",
+                    "{} {} {};\n",
                     Renderer::render_node(*ident)?,
+                    if expand { "+=" } else { "=" },
                     Renderer::render_statement(value.statement)?
                 ));
             }
@@ -78,7 +79,7 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&Renderer::render_statement(*stmt)?),
-            Statement::Defined(node) => output.push_str(&Renderer::render_node(*node.clone())?),
+            Statement::Defined(node, orig) => output.push_str(&Renderer::render_node(*node.clone())?),
             Statement::Inserted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),
             // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),

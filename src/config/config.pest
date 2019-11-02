@@ -1,8 +1,9 @@
 file = { SOI ~ config ~ EOI }
 config = { items }
-items = _{ ((( prop | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)* }
+items = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)* }
 
-prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array ) }
+prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array) }
+propexpand = { identarray ~ "+=" ~ array }
 
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 value = _{
@@ -26,7 +27,7 @@ char = { !("\n" | ";") ~ ANY }
 
 special = { "__FILE__" | "__LINE__" }
 
-array = { "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
+array = !{ "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
 
 class = { "class " ~ ident ~ "{" ~ items ~ "}" }
 classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ items ~ "}" }
