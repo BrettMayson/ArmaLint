@@ -11,6 +11,8 @@ build = "build.rs"
 pest = "*"
 pest_derive = "*"
 regex = "*"
+strum = "*"
+strum_macros = "*"
 
 [build-dependencies]
 pest = "*"

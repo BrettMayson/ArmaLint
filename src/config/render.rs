@@ -7,7 +7,7 @@ impl Renderer {
         let mut output = String::new();
         let config = match ast.config.statement {
             Statement::Config(c) => c,
-            _ => return Err(ArmaLintError::PreprocessNotRoot),
+            _ => return Err(ArmaLintError::NotRoot),
         };
         output.push_str(&Renderer::render_nodes(config)?);
         Ok(output)
@@ -30,7 +30,11 @@ impl Renderer {
     pub fn render_statement(statement: Statement) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         match statement {
-            Statement::Property { ident, value, expand } => {
+            Statement::Property {
+                ident,
+                value,
+                expand,
+            } => {
                 output.push_str(&format!(
                     "{} {} {};\n",
                     Renderer::render_node(*ident)?,
@@ -79,7 +83,9 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&Renderer::render_statement(*stmt)?),
-            Statement::Defined(node, orig) => output.push_str(&Renderer::render_node(*node.clone())?),
+            Statement::Defined(node, orig) => {
+                output.push_str(&Renderer::render_node(*node.clone())?)
+            }
             Statement::Inserted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),
             // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),

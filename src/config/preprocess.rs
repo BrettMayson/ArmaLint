@@ -30,9 +30,10 @@ impl PreProcessor {
         let mut ast = ast.clone();
         let config = match ast.config.statement {
             Statement::Config(c) => c,
-            _ => return Err(ArmaLintError::PreprocessNotRoot),
+            _ => return Err(ArmaLintError::NotRoot),
         };
         ast.config.statement = Statement::Config(self.process_nodes(config, None)?);
+        ast.processed = true;
         Ok(ast)
     }
 
@@ -51,7 +52,11 @@ impl PreProcessor {
         let mut node = node.clone();
         let node_clone = node.clone();
         match &mut node.statement {
-            Statement::Property { ident, value, expand } => {
+            Statement::Property {
+                ident,
+                value,
+                expand,
+            } => {
                 node.statement = Statement::Property {
                     ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
                     value: Box::new(self.process_node(*value.clone(), macro_root.clone())?),

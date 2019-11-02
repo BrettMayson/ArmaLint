@@ -5,5 +5,7 @@ pub enum ArmaLintError {
         negatives: Vec<String>,
     },
     InvalidInput(String),
-    PreprocessNotRoot,
+    InvalidProperty(String),
+    NotProcessed,
+    NotRoot,
 }

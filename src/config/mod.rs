@@ -12,6 +12,8 @@ pub use render::Renderer;
 mod statement;
 pub use statement::Statement;
 
+pub mod simplify;
+
 use crate::ArmaLintError;
 
 #[derive(Parser)]
@@ -21,6 +23,7 @@ pub struct ConfigParser;
 #[derive(Debug, Clone)]
 pub struct AST {
     pub config: Node,
+    pub processed: bool,
 }
 
 pub fn parse<F>(file: &str, source: &str, resolver: F) -> Result<AST, ArmaLintError>
@@ -28,7 +31,7 @@ where
     F: Fn(&str) -> String + Copy,
 {
     if source.starts_with("#s") {
-        return Err(ArmaLintError::PreprocessNotRoot);
+        return Err(ArmaLintError::NotRoot);
     }
     let clean = source.replace("\r", "");
     let pair = ConfigParser::parse(Rule::config, &clean)
@@ -37,6 +40,7 @@ where
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     Ok(AST {
         config: Node::from_expr(file, source, pair, resolver)?,
+        processed: false,
     })
 }
 

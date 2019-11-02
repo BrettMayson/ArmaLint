@@ -1,6 +1,8 @@
 use super::Node;
 
-#[derive(Debug, Clone, PartialEq)]
+use strum::AsStaticRef;
+
+#[derive(Debug, Clone, PartialEq, AsStaticStr)]
 pub enum Statement {
     Config(Vec<Node>),
     Array(Vec<Node>),
@@ -61,4 +63,10 @@ pub enum Statement {
     InvalidCall(String, Box<Statement>),
     Inserted(Vec<Node>),
     Gone,
+}
+
+impl ToString for Statement {
+    fn to_string(&self) -> String {
+        super::Renderer::render_statement(self.clone()).unwrap()
+    }
 }
