@@ -83,9 +83,7 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&Renderer::render_statement(*stmt)?),
-            Statement::Defined(node, orig) => {
-                output.push_str(&Renderer::render_node(*node.clone())?)
-            }
+            Statement::Defined(node, _) => output.push_str(&Renderer::render_node(*node.clone())?),
             Statement::Inserted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),
             // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&Renderer::render_nodes(nodes)?),
@@ -95,11 +93,9 @@ impl Renderer {
             Statement::LINE => {
                 panic!("A line marker was not processed out, this should be reported as a bug")
             }
-            Statement::IfDef {
-                ident: _,
-                positive: _,
-                negative: _,
-            } => panic!("An IfDef marker was not processed out, this should be reported as a bug"),
+            Statement::IfDef { .. } => {
+                panic!("An IfDef marker was not processed out, this should be reported as a bug")
+            }
             Statement::MacroBody(_) => {
                 panic!("A MacroBody marker was not processed out, this should be reported as a bug")
             }
@@ -107,15 +103,11 @@ impl Renderer {
                 "A MacroCallArg marker was not processed out, this should be reported as a bug"
             ),
             // Ignored
-            Statement::Define { ident: _, value: _ } => {}
-            Statement::DefineMacro {
-                ident: _,
-                args: _,
-                value: _,
-            } => {}
+            Statement::Define { .. } => {}
+            Statement::DefineMacro { .. } => {}
             Statement::Undefine(_) => {}
             Statement::Undefined(_, _) => {}
-            Statement::MacroCall { ident: _, args: _ } => {}
+            Statement::MacroCall { .. } => {}
             Statement::InvalidCall(_, _) => {}
             Statement::Gone => {}
         }

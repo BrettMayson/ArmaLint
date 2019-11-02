@@ -33,7 +33,7 @@ impl Into<ArrayElement> for Entry {
             Entry::Float(v) => ArrayElement::Float(v),
             Entry::Int(v) => ArrayElement::Int(v),
             Entry::Array(v) => ArrayElement::Array(v),
-            _ => panic!("Invalid item was found in array: {:?}", self)
+            _ => panic!("Invalid item was found in array: {:?}", self),
         }
     }
 }
@@ -63,13 +63,11 @@ impl Config {
                     parent: String::new(),
                     external: false,
                     deletion: false,
-                    entries: {
-                        get_entries(inner)?
-                    },
+                    entries: { get_entries(inner)? },
                 },
             })
         } else {
-            return Err(ArmaLintError::NotRoot);
+            Err(ArmaLintError::NotRoot)
         }
     }
 }
@@ -86,8 +84,13 @@ pub fn get_entries(nodes: Vec<Node>) -> Result<Vec<(String, Entry)>, ArmaLintErr
 
 pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
     Ok(match node.statement {
-        Statement::Class {ident, extends, props} => {
-            Some((ident.to_string(), Entry::Class(Class {
+        Statement::Class {
+            ident,
+            extends,
+            props,
+        } => Some((
+            ident.to_string(),
+            Entry::Class(Class {
                 parent: {
                     if let Some(ex) = extends {
                         ex.to_string()
@@ -97,27 +100,26 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
                 },
                 deletion: false,
                 external: false,
-                entries: get_entries(props)?
-            })))
-        }
-        Statement::ClassDef(ident) => {
-            Some((ident.to_string(), Entry::Class(Class {
+                entries: get_entries(props)?,
+            }),
+        )),
+        Statement::ClassDef(ident) => Some((
+            ident.to_string(),
+            Entry::Class(Class {
                 parent: String::new(),
                 deletion: false,
                 external: true,
                 entries: Vec::new(),
-            })))
-        }
-        Statement::Property {ident, value, expand} => {
-            Some((ident.to_string(), get_value(
-                value.statement, expand
-            )?))
-        }
-        Statement::Config(inner) => {
-            Some((String::new(), Entry::Invisible(get_entries(inner)?)))
-        }
+            }),
+        )),
+        Statement::Property {
+            ident,
+            value,
+            expand,
+        } => Some((ident.to_string(), get_value(value.statement, expand)?)),
+        Statement::Config(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
         // Ignore
-        Statement::DefineMacro {ident: _, args: _, value: _} => None,
+        Statement::DefineMacro { .. } => None,
         _ => {
             panic!("Not ready for {:#?}", node);
         }
@@ -135,14 +137,23 @@ pub fn get_value(statement: Statement, expand: bool) -> Result<Entry, ArmaLintEr
             expand,
             elements: get_array(val)?,
         }),
-        _ => return Err(ArmaLintError::InvalidProperty(format!("Invalid property type `{}`", statement.as_static())))
+        _ => {
+            return Err(ArmaLintError::InvalidProperty(format!(
+                "Invalid property type `{}`",
+                statement.as_static()
+            )))
+        }
     })
 }
 
 pub fn get_array(nodes: Vec<Node>) -> Result<Vec<ArrayElement>, ArmaLintError> {
     let mut elements = Vec::new();
     for n in nodes {
-        let expand = if let Statement::Property {ident: _, expand: e, value: _} = n.statement { e } else { false };
+        let expand = if let Statement::Property { expand: e, .. } = n.statement {
+            e
+        } else {
+            false
+        };
         elements.push(get_value(n.statement, expand)?.into());
     }
     Ok(elements)

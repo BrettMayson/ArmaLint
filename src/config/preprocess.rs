@@ -241,7 +241,7 @@ impl PreProcessor {
                         Statement::Char(c) => {
                             output.push(c);
                         }
-                        Statement::MacroCall { ident: _, args: _ } => {
+                        Statement::MacroCall { .. } => {
                             match self
                                 .process_node(
                                     child.clone(),
@@ -316,8 +316,8 @@ impl PreProcessor {
     pub fn tokens(&self, text: String) -> Result<String, ArmaLintError> {
         let s = text.clone();
         let mut output = Vec::new();
-        for token in s.trim().split(" ") {
-            if token.starts_with("#") {
+        for token in s.trim().split(' ') {
+            if token.starts_with('#') {
                 let ident = remove_first(token).unwrap();
                 let data = if let Some(v) = self.defines.get(ident) {
                     Renderer::render_node(v.clone())?

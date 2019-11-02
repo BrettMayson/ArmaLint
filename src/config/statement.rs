@@ -1,7 +1,5 @@
 use super::Node;
 
-use strum::AsStaticRef;
-
 #[derive(Debug, Clone, PartialEq, AsStaticStr)]
 pub enum Statement {
     Config(Vec<Node>),

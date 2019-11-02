@@ -73,13 +73,13 @@ fn basic_class() {
     digit = 149;
     dec = 12.42;
 };"###;
-    parse("basic.cpp", content, |x| panic!("No import")).unwrap();
+    parse("basic.cpp", content, |_x| panic!("No import")).unwrap();
 }
 
 #[test]
 fn basic_statement_ast() {
     let content = r###"something = true;"###;
-    let ast = parse("basic.cpp", content, |x| panic!("No Import")).unwrap();
+    let ast = parse("basic.cpp", content, |_x| panic!("No Import")).unwrap();
     assert_eq!(
         ast.config.statement,
         Statement::Config(vec![Node {
