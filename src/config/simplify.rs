@@ -95,11 +95,11 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             extends,
             props,
         } => Some((
-            ident.to_string(),
+            get_ident(ident.statement)?,
             Entry::Class(Class {
                 parent: {
                     if let Some(ex) = extends {
-                        ex.to_string()
+                        get_ident(ex.statement)?
                     } else {
                         String::new()
                     }
@@ -110,7 +110,7 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             }),
         )),
         Statement::ClassDef(ident) => Some((
-            ident.to_string(),
+            get_ident(ident.statement)?,
             Entry::Class(Class {
                 parent: String::new(),
                 deletion: false,
@@ -122,7 +122,10 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             ident,
             value,
             expand,
-        } => Some((ident.to_string(), get_value(value.statement, expand)?)),
+        } => Some((
+            get_ident(ident.statement)?,
+            get_value(value.statement, expand)?,
+        )),
         Statement::Config(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
         // Ignore
         Statement::DefineMacro { .. } => None,
@@ -138,7 +141,7 @@ pub fn get_value(statement: Statement, expand: bool) -> Result<Entry, ArmaLintEr
         Statement::Float(val) => Entry::Float(val),
         Statement::Str(val) => Entry::Str(val),
         Statement::InternalStr(val) => Entry::Str(val),
-        Statement::Processed(val, _) => Entry::Str(val.to_string()),
+        Statement::Processed(val, _) => get_value(*val, expand)?,
         Statement::Array(val) => Entry::Array(Array {
             expand,
             elements: get_array(val)?,
@@ -163,4 +166,11 @@ pub fn get_array(nodes: Vec<Node>) -> Result<Vec<ArrayElement>, ArmaLintError> {
         elements.push(get_value(n.statement, expand)?.into());
     }
     Ok(elements)
+}
+
+fn get_ident(stmt: Statement) -> Result<String, ArmaLintError> {
+    Ok(match stmt {
+        Statement::Ident(val) => val.to_string(),
+        _ => panic!("get ident wasn't given ident"),
+    })
 }

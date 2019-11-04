@@ -1,4 +1,4 @@
-# Arma Lint
+# ArmaLint
 
 An Arma linting tool and library
 

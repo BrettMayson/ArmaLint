@@ -20,12 +20,6 @@ impl PreProcessor {
         }
     }
 
-    pub fn report(&self) {
-        println!("=== Defines\n{:?}", self.defines);
-        println!("=== Macros\n{:?}", self.macros);
-        println!("=== Valid: {}", self.valid);
-    }
-
     pub fn process(&mut self, ast: AST) -> Result<AST, ArmaLintError> {
         let mut ast = ast.clone();
         let config = match ast.config.statement {

@@ -63,8 +63,8 @@ pub enum Statement {
     Gone,
 }
 
-impl ToString for Statement {
-    fn to_string(&self) -> String {
-        super::Renderer::render_statement(self.clone()).unwrap()
-    }
-}
+// impl ToString for Statement {
+//     fn to_string(&self) -> String {
+//         super::Renderer::render_statement(self.clone()).unwrap()
+//     }
+// }

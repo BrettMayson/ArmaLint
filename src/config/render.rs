@@ -50,7 +50,6 @@ impl Renderer {
             Statement::Float(val) => output.push_str(&val.to_string()),
             Statement::Char(val) => output.push(val),
             Statement::InternalStr(val) => output.push_str(&val.to_string()),
-            //Statement::Unquoted(val) => output.push_str(&format!("\"{}\"", val.replace('"', "\"\""))),
             Statement::Class {
                 ident,
                 extends,

@@ -14,8 +14,8 @@ The ArmaLint Config preprocessor tries to act as closely as possible to one foun
 
 ### CURRENTLY UNSUPPORTED
 __EXEC  
-__EVAL
-##
+__EVAL  
+\#\#  
 enum
 
 ## Renderer

@@ -249,8 +249,8 @@ impl Node {
     }
 }
 
-impl ToString for Node {
-    fn to_string(&self) -> String {
-        super::Renderer::render_node(self.clone()).unwrap()
-    }
-}
+// impl ToString for Node {
+//     fn to_string(&self) -> String {
+//         super::Renderer::render_node(self.clone()).unwrap()
+//     }
+// }

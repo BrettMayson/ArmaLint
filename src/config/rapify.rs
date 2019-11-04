@@ -22,39 +22,6 @@ impl ArrayElement {
 }
 
 impl Array {
-    pub fn write<O: Write>(&self, output: &mut O) -> Result<(), ArmaLintError> {
-        output.write_all(b"{")?;
-        for (key, value) in self.elements.iter().enumerate() {
-            match value {
-                ArrayElement::Array(ref a) => {
-                    a.write(output)?;
-                }
-                ArrayElement::Str(s) => {
-                    output.write_all(
-                        format!(
-                            "\"{}\"",
-                            s.replace("\r", "\\r")
-                                .replace("\n", "\\n")
-                                .replace("\"", "\"\"")
-                        )
-                        .as_bytes(),
-                    )?;
-                }
-                ArrayElement::Float(f) => {
-                    output.write_all(format!("{:?}", f).as_bytes())?;
-                }
-                ArrayElement::Int(i) => {
-                    output.write_all(format!("{}", i).as_bytes())?;
-                }
-            }
-            if key < self.elements.len() - 1 {
-                output.write_all(b", ")?;
-            }
-        }
-        output.write_all(b"}")?;
-        Ok(())
-    }
-
     pub fn write_rapified<O: Write>(&self, output: &mut O) -> Result<usize, ArmaLintError> {
         let mut written = output.write_compressed_int(self.elements.len() as u32)?;
 
@@ -145,71 +112,6 @@ impl Entry {
 }
 
 impl Class {
-    pub fn write<O: Write>(&self, mut output: &mut O, level: i32) -> Result<(), ArmaLintError> {
-        if level > 0 && !self.entries.is_empty() {
-            output.write_all(b"\n")?;
-        }
-        for (key, value) in &self.entries {
-            output.write_all(String::from("    ").repeat(level as usize).as_bytes())?;
-
-            match value {
-                Entry::Class(ref c) => {
-                    if c.deletion {
-                        output.write_all(format!("delete {};\n", key).as_bytes())?;
-                    } else if c.external {
-                        output.write_all(format!("class {};\n", key).as_bytes())?;
-                    } else {
-                        let parent = if c.parent == "" {
-                            String::from("")
-                        } else {
-                            format!(": {}", c.parent)
-                        };
-                        if !c.entries.is_empty() {
-                            output.write_all(format!("class {}{} {{", key, parent).as_bytes())?;
-                            c.write(output, level + 1)?;
-                            output.write_all(
-                                String::from("    ").repeat(level as usize).as_bytes(),
-                            )?;
-                            output.write_all(b"};\n")?;
-                        } else {
-                            output
-                                .write_all(format!("class {}{} {{}};\n", key, parent).as_bytes())?;
-                        }
-                    }
-                }
-                Entry::Str(s) => {
-                    output.write_all(
-                        format!(
-                            "{} = \"{}\";\n",
-                            key,
-                            s.replace("\r", "\\r")
-                                .replace("\n", "\\n")
-                                .replace("\"", "\"\"")
-                        )
-                        .as_bytes(),
-                    )?;
-                }
-                Entry::Float(f) => {
-                    output.write_all(format!("{} = {:?};\n", key, f).as_bytes())?;
-                }
-                Entry::Int(i) => {
-                    output.write_all(format!("{} = {};\n", key, i).as_bytes())?;
-                }
-                Entry::Array(ref a) => {
-                    if a.expand {
-                        output.write_all(format!("{}[] += ", key).as_bytes())?;
-                    } else {
-                        output.write_all(format!("{}[] = ", key).as_bytes())?;
-                    }
-                    a.write(&mut output)?;
-                    output.write_all(b";\n")?;
-                }
-                Entry::Invisible(_) => {}
-            }
-        }
-        Ok(())
-    }
-
     pub fn rapified_length(&self) -> usize {
         if !self.entries.is_empty() {
             self.parent.len()
@@ -401,20 +303,6 @@ impl Class {
 }
 
 impl Config {
-    /// Writes the config (unrapified) to the output.
-    pub fn write<O: Write>(&self, output: &mut O) -> Result<(), ArmaLintError> {
-        self.root.write(output, 0)
-    }
-
-    /// Returns the unrapified config as a string.
-    pub fn to_string(&self) -> Result<String, ArmaLintError> {
-        let buffer = Vec::new();
-        let mut cursor: Cursor<Vec<u8>> = Cursor::new(buffer);
-        self.write(&mut cursor)?;
-
-        Ok(String::from_utf8(cursor.into_inner()).unwrap())
-    }
-
     /// Writes the rapified config to the output.
     pub fn write_rapified<O: Write>(&self, output: &mut O) -> Result<(), ArmaLintError> {
         let mut writer = BufWriter::new(output);
@@ -455,7 +343,9 @@ impl Config {
         reader.read_exact(&mut buffer)?;
 
         if &buffer != b"\0raP" {
-            return Err(ArmaLintError::InvalidInput("File doesn't seem to be a rapified config.".to_string()));
+            return Err(ArmaLintError::InvalidInput(
+                "File doesn't seem to be a rapified config.".to_string(),
+            ));
         }
 
         Ok(Config {
