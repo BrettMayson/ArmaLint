@@ -1,14 +1,14 @@
 #[derive(Copy, Clone)]
 pub enum BracketStyle {
     /// Linux Kernel
-    /// ```
+    /// ```hpp
     /// class MyClass {
     ///     property = "This is the Linux style";
     /// };
     /// ```
     Linux,
     /// Allman style
-    /// ```
+    /// ```hpp
     /// class MyClass
     /// {
     ///     property = "This is the Allman style";
