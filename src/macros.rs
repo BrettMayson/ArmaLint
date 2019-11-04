@@ -1,11 +1,6 @@
-macro_rules! indent {
-    ($e: expr) => {{
-        let mut o = String::new();
-        for l in $e.to_string().split('\n') {
-            if l != "" {
-                o.push_str(&format!("    {}\n", l))
-            }
-        }
-        o
+#[macro_export]
+macro_rules! repeat {
+    ($s:expr, $n:expr) => {{
+        std::iter::repeat($s).take($n).collect::<String>()
     }};
 }

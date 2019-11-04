@@ -14,8 +14,7 @@ impl ArrayElement {
             ArrayElement::Float(_f) => 5,
             ArrayElement::Int(_i) => 5,
             ArrayElement::Array(a) => {
-                1 + compressed_int_len(a.elements.len() as u32)
-                    + usize::sum(a.elements.iter().map(|e| e.rapified_length()))
+                1 + compressed_int_len(a.elements.len() as u32) + usize::sum(a.elements.iter().map(|e| e.rapified_length()))
             }
         }
     }
@@ -75,10 +74,7 @@ impl Array {
             }
         }
 
-        Ok(Array {
-            expand: false,
-            elements,
-        })
+        Ok(Array { expand: false, elements })
     }
 }
 
@@ -131,11 +127,7 @@ impl Class {
         }
     }
 
-    pub fn write_rapified<O: Write>(
-        &self,
-        output: &mut O,
-        offset: usize,
-    ) -> Result<usize, ArmaLintError> {
+    pub fn write_rapified<O: Write>(&self, output: &mut O, offset: usize) -> Result<usize, ArmaLintError> {
         let mut written = 0;
 
         if !self.entries.is_empty() {
@@ -144,11 +136,7 @@ impl Class {
 
             written += output.write_compressed_int(self.entries.len() as u32)?;
 
-            let entries_len = usize::sum(
-                self.entries
-                    .iter()
-                    .map(|(k, v)| k.len() + 1 + v.rapified_length()),
-            );
+            let entries_len = usize::sum(self.entries.iter().map(|(k, v)| k.len() + 1 + v.rapified_length()));
             let mut class_offset = offset + written + entries_len;
             let mut class_bodies: Vec<Cursor<Box<[u8]>>> = Vec::new();
             let pre_entries = written;
@@ -202,10 +190,7 @@ impl Class {
                     }
                     Entry::Invisible(_) => {}
                 }
-                assert_eq!(
-                    written - pre_write,
-                    entry.rapified_length() + name.len() + 1
-                );
+                assert_eq!(written - pre_write, entry.rapified_length() + name.len() + 1);
             }
 
             assert_eq!(written - pre_entries, entries_len);
@@ -219,10 +204,7 @@ impl Class {
         Ok(written)
     }
 
-    pub fn read_rapified<I: Read + Seek>(
-        input: &mut I,
-        level: u32,
-    ) -> Result<Class, ArmaLintError> {
+    pub fn read_rapified<I: Read + Seek>(input: &mut I, level: u32) -> Result<Class, ArmaLintError> {
         let mut fp = 0;
         if level == 0 {
             input.seek(SeekFrom::Start(16))?;

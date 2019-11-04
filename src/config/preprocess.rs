@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{Node, Renderer, Statement, AST};
+use super::{Node, Statement, AST};
 use crate::ArmaLintError;
 
 type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
@@ -38,30 +38,18 @@ impl PreProcessor {
             .collect::<Result<Vec<Node>, ArmaLintError>>()?)
     }
 
-    pub fn process_node(
-        &mut self,
-        node: Node,
-        macro_root: Option<Node>,
-    ) -> Result<Node, ArmaLintError> {
+    pub fn process_node(&mut self, node: Node, macro_root: Option<Node>) -> Result<Node, ArmaLintError> {
         let mut node = node.clone();
         let node_clone = node.clone();
         match &mut node.statement {
-            Statement::Property {
-                ident,
-                value,
-                expand,
-            } => {
+            Statement::Property { ident, value, expand } => {
                 node.statement = Statement::Property {
                     ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
                     value: Box::new(self.process_node(*value.clone(), macro_root.clone())?),
                     expand: *expand,
                 };
             }
-            Statement::Class {
-                ident,
-                extends,
-                props,
-            } => {
+            Statement::Class { ident, extends, props } => {
                 node.statement = Statement::Class {
                     ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
                     extends: if let Some(e) = extends {
@@ -84,10 +72,8 @@ impl PreProcessor {
             Statement::Integer(_) => {}
             Statement::Str(_) => {}
             Statement::FILE => {
-                node.statement = Statement::Processed(
-                    Box::new(Statement::InternalStr(node.file.clone())),
-                    Box::new(node.statement),
-                );
+                node.statement =
+                    Statement::Processed(Box::new(Statement::InternalStr(node.file.clone())), Box::new(node.statement));
             }
             Statement::LINE => {
                 node.statement = Statement::Processed(
@@ -101,28 +87,22 @@ impl PreProcessor {
             }
             Statement::Ident(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement =
-                        Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    node.statement = Statement::DefinedCall(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::IdentArray(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement =
-                        Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    node.statement = Statement::DefinedCall(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::ClassDef(ident) => {
-                node.statement =
-                    Statement::ClassDef(Box::new(self.process_node(*ident.clone(), macro_root)?));
+                node.statement = Statement::ClassDef(Box::new(self.process_node(*ident.clone(), macro_root)?));
             }
             Statement::ClassDelete(ident) => {
-                node.statement = Statement::ClassDelete(Box::new(
-                    self.process_node(*ident.clone(), macro_root)?,
-                ));
+                node.statement = Statement::ClassDelete(Box::new(self.process_node(*ident.clone(), macro_root)?));
             }
             Statement::Config(nodes) => {
-                node.statement =
-                    Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
+                node.statement = Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
             }
             // Directives
             Statement::Define { ident, value } => {
@@ -134,8 +114,7 @@ impl PreProcessor {
             Statement::DefineMacro { ident, args, value } => {
                 self.defines.remove(ident);
                 self.macros.remove(ident);
-                self.macros
-                    .insert(ident.to_string(), (args.to_vec(), *value.clone()));
+                self.macros.insert(ident.to_string(), (args.to_vec(), *value.clone()));
             }
             Statement::MacroCall { ident, args } => {
                 if let Some(mac) = self.macros.get(ident) {
@@ -162,8 +141,7 @@ impl PreProcessor {
                                     Some(node_clone.clone())
                                 },
                             )?;
-                            self.defines
-                                .insert(mac_args.get(i).unwrap().to_string(), macro_body);
+                            self.defines.insert(mac_args.get(i).unwrap().to_string(), macro_body);
                         }
                         node.statement = self
                             .process_node(
@@ -218,7 +196,7 @@ impl PreProcessor {
                 }
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        Statement::DefinedCall(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -250,10 +228,7 @@ impl PreProcessor {
                                 Statement::InternalStr(s) => {
                                     output.push_str(&s);
                                 }
-                                _ => panic!(
-                                    "Unquoted.MacroCall needs to handle: {:#?}",
-                                    child.statement
-                                ),
+                                _ => panic!("Unquoted.MacroCall needs to handle: {:#?}", child.statement),
                             }
                         }
                         _ => panic!("Unquoted needs to handle: {:#?}", child.statement),
@@ -262,7 +237,7 @@ impl PreProcessor {
 
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        Statement::DefinedCall(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -283,9 +258,7 @@ impl PreProcessor {
                 positive,
                 negative,
             } => {
-                node.statement = if self.defines.contains_key(ident)
-                    || self.macros.contains_key(ident)
-                {
+                node.statement = if self.defines.contains_key(ident) || self.macros.contains_key(ident) {
                     Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
                 } else if let Some(n) = negative {
                     Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
@@ -295,11 +268,11 @@ impl PreProcessor {
             }
             // Ignored
             Statement::Char(_) => {}
-            Statement::Defined(_, _) => {}
             Statement::Float(_) => {}
             Statement::Gone => {}
             Statement::Inserted(_) => {}
             Statement::InternalStr(_) => {}
+            Statement::DefinedCall(_, _) => {}
             Statement::InvalidCall(_, _) => {}
             Statement::Processed(_, _) => {}
             Statement::Undefined(_, _) => {}
@@ -314,14 +287,14 @@ impl PreProcessor {
             if token.starts_with('#') {
                 let ident = remove_first(token).unwrap();
                 let data = if let Some(v) = self.defines.get(ident) {
-                    Renderer::render_node(v.clone())?
+                    super::get_ident(v.statement.clone())?
                 } else {
                     ident.to_string()
                 };
                 output.push(format!("\"{}\"", data));
             } else {
                 output.push(if let Some(v) = self.defines.get(token) {
-                    Renderer::render_node(v.clone())?
+                    super::get_ident(v.statement.clone())?
                 } else {
                     token.to_string()
                 });

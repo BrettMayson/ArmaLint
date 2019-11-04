@@ -10,6 +10,13 @@ pub use render::Renderer;
 pub mod rapify;
 pub mod simplify;
 
+fn get_ident(stmt: Statement) -> Result<String, crate::ArmaLintError> {
+    Ok(match stmt {
+        Statement::Ident(val) => val.to_string(),
+        _ => panic!("get ident wasn't given ident"),
+    })
+}
+
 // Tests
 
 #[test]

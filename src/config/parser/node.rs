@@ -33,12 +33,7 @@ impl Node {
                 Rule::class => {
                     let mut parts = pair.into_inner();
                     Statement::Class {
-                        ident: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
+                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
                         extends: None,
                         props: parts
                             .map(|x| Node::from_expr(file, source, x, resolver))
@@ -48,18 +43,8 @@ impl Node {
                 Rule::classextends => {
                     let mut parts = pair.into_inner();
                     Statement::Class {
-                        ident: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
-                        extends: Some(Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?)),
+                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        extends: Some(Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?)),
                         props: parts
                             .map(|x| Node::from_expr(file, source, x, resolver))
                             .collect::<ResultNodeVec>()?,
@@ -80,36 +65,16 @@ impl Node {
                 Rule::prop => {
                     let mut parts = pair.into_inner();
                     Statement::Property {
-                        ident: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
-                        value: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
+                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
                         expand: false,
                     }
                 }
                 Rule::propexpand => {
                     let mut parts = pair.into_inner();
                     Statement::Property {
-                        ident: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
-                        value: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
+                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
                         expand: true,
                     }
                 }
@@ -123,9 +88,7 @@ impl Node {
                 Rule::integer => Statement::Integer(pair.as_str().parse().unwrap()),
                 Rule::string => Statement::Str(String::from(pair.as_str())),
                 Rule::ident => Statement::Ident(String::from(pair.as_str())),
-                Rule::identarray => {
-                    Statement::IdentArray(String::from(pair.into_inner().next().unwrap().as_str()))
-                }
+                Rule::identarray => Statement::IdentArray(String::from(pair.into_inner().next().unwrap().as_str())),
                 Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
                 Rule::unquoted => Statement::Unquoted(
                     pair.into_inner()
@@ -150,12 +113,7 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Define {
                         ident: String::from(parts.next().unwrap().as_str()),
-                        value: Box::new(Node::from_expr(
-                            file,
-                            source,
-                            parts.next().unwrap(),
-                            resolver,
-                        )?),
+                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
                     }
                 }
                 Rule::define_macro => {
@@ -203,9 +161,7 @@ impl Node {
                 ),
                 Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
                 Rule::define_macro_body => Statement::MacroBody(pair.as_str().to_owned()),
-                Rule::undef => {
-                    Statement::Undefine(pair.into_inner().next().unwrap().as_str().to_string())
-                }
+                Rule::undef => Statement::Undefine(pair.into_inner().next().unwrap().as_str().to_string()),
                 Rule::ifdef => {
                     let mut parts = pair.into_inner();
                     Statement::IfDef {

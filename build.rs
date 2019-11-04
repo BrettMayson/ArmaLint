@@ -5,7 +5,6 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-use pest::error::Error;
 use pest::Parser;
 
 #[derive(Parser)]
@@ -36,7 +35,7 @@ enum Type {
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("cmds.rs");
-    let mut f = File::create(&dest_path).unwrap();
+    let f = File::create(&dest_path).unwrap();
 
     let source = std::fs::read_to_string("sqf/chat.alcmds").unwrap();
 
@@ -75,10 +74,7 @@ fn from_cmd(pair: pest::iterators::Pair<Rule>) -> CMD {
                 cmd.variants.push(match inner.next().unwrap().as_str() {
                     "nular" => Signature::Nular,
                     "unary" => Signature::Unary(atype(inner.next().unwrap())),
-                    "binary" => Signature::Binary(
-                        atype(inner.next().unwrap()),
-                        atype(inner.next().unwrap()),
-                    ),
+                    "binary" => Signature::Binary(atype(inner.next().unwrap()), atype(inner.next().unwrap())),
                     _ => unimplemented!(),
                 });
             }

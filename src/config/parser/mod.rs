@@ -41,10 +41,7 @@ where
 impl From<pest::error::Error<Rule>> for ArmaLintError {
     fn from(err: pest::error::Error<Rule>) -> ArmaLintError {
         match err.variant {
-            pest::error::ErrorVariant::ParsingError {
-                positives,
-                negatives,
-            } => ArmaLintError::ParsingError {
+            pest::error::ErrorVariant::ParsingError { positives, negatives } => ArmaLintError::ParsingError {
                 positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
                 negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
             },
