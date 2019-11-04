@@ -13,6 +13,7 @@ pest_derive = "*"
 regex = "*"
 strum = "*"
 strum_macros = "*"
+byteorder = "*"
 
 [build-dependencies]
 pest = "*"

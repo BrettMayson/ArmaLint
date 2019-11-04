@@ -63,7 +63,7 @@ impl Config {
                     parent: String::new(),
                     external: false,
                     deletion: false,
-                    entries: { get_entries(inner)? },
+                    entries: get_entries(inner)?,
                 },
             })
         } else {
@@ -76,7 +76,13 @@ pub fn get_entries(nodes: Vec<Node>) -> Result<Vec<(String, Entry)>, ArmaLintErr
     let mut entries = Vec::new();
     for node in nodes {
         if let Some((ident, entry)) = get_entry(node)? {
-            entries.push((ident, entry));
+            if let Entry::Invisible(e) = entry {
+                for i in e {
+                    entries.push(i);
+                }
+            } else {
+                entries.push((ident, entry));
+            }
         }
     }
     Ok(entries)

@@ -12,6 +12,7 @@ pub use render::Renderer;
 mod statement;
 pub use statement::Statement;
 
+pub mod rapify;
 pub mod simplify;
 
 use crate::ArmaLintError;

@@ -2,6 +2,8 @@
 
 Arma Config Files (config.cpp / Description.ext)
 
+![config flow](config_flow.png)
+
 ## Parser
 
 The ArmaLint Config parser creates a full Abstract Syntax Tree of the config file, its includes, and its PreProcessor Commands. Macros are also parsed into their AST version to ensure accurate syntax.
@@ -26,4 +28,4 @@ The ArmaLint Config simplifier is used to create a version of the config that is
 
 ## Rapifier
 
-WIP
+The ArmaLint Config rapifier is capable of reading and writing rapified config files.
