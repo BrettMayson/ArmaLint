@@ -62,9 +62,3 @@ pub enum Statement {
     Inserted(Vec<Node>),
     Gone,
 }
-
-// impl ToString for Statement {
-//     fn to_string(&self) -> String {
-//         super::Renderer::render_statement(self.clone()).unwrap()
-//     }
-// }
