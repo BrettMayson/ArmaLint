@@ -2,8 +2,7 @@ use super::{Node, Statement, AST};
 use crate::ArmaLintError;
 
 mod options;
-pub use options::RenderOptions;
-use options::{BracketStyle, IndentationType};
+pub use options::{BracketStyle, IndentationType, RenderOptions};
 
 pub struct Renderer {
     options: RenderOptions,
@@ -11,7 +10,7 @@ pub struct Renderer {
 
 impl Renderer {
     /// Renders processed AST or simplified configs
-    fn new(options: RenderOptions) -> Self {
+    pub fn new(options: RenderOptions) -> Self {
         Self { options }
     }
 
@@ -22,13 +21,12 @@ impl Renderer {
             _ => return Err(ArmaLintError::NotRoot),
         };
         output.push_str(&self.render_nodes(config, 0)?);
-        Ok(output)
+        Ok(output.trim().to_string())
     }
 
     pub fn render_nodes(&self, nodes: Vec<Node>, indent: u8) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         for node in nodes {
-            output.push_str(&self.indent(indent));
             output.push_str(&self.render_node(node, indent)?);
         }
         Ok(output)
@@ -44,6 +42,7 @@ impl Renderer {
         let mut output = String::new();
         match statement {
             Statement::Property { ident, value, expand } => {
+                output.push_str(&self.indent(indent));
                 output.push_str(&format!(
                     "{} {} {};\n",
                     self.render_node(*ident, indent)?,
@@ -60,16 +59,21 @@ impl Renderer {
             Statement::Char(val) => output.push(val),
             Statement::InternalStr(val) => output.push_str(&val.to_string()),
             Statement::Class { ident, extends, props } => {
+                output.push_str(&self.indent(indent));
                 output.push_str(&format!("class {}", self.render_node(*ident, indent)?));
                 if let Some(extended) = extends {
                     output.push_str(&format!(": {}", self.render_node(*extended, indent)?));
                 }
                 match self.options.bracket_style {
-                    BracketStyle::Allman => output.push_str("\n"),
+                    BracketStyle::Allman => {
+                        output.push_str("\n");
+                        output.push_str(&self.indent(indent));
+                    }
                     BracketStyle::Linux => output.push_str(" "),
                 }
                 output.push_str(if props.is_empty() { "{" } else { "{\n" });
                 output.push_str(&self.render_nodes(props, indent + 1)?);
+                output.push_str(&self.indent(indent));
                 output.push_str("};\n");
             }
             Statement::ClassDef(ident) => output.push_str(&format!("class {};\n", self.render_node(*ident, indent)?)),

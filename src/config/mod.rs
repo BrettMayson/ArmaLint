@@ -4,16 +4,20 @@ pub use parser::{parse, Node, Statement, AST};
 mod preprocess;
 pub use preprocess::PreProcessor;
 
-mod render;
-pub use render::Renderer;
+pub mod render;
+pub use render::{RenderOptions, Renderer};
 
 pub mod rapify;
 pub mod simplify;
 
 fn get_ident(stmt: Statement) -> Result<String, crate::ArmaLintError> {
     Ok(match stmt {
-        Statement::Ident(val) => val.to_string(),
-        _ => panic!("get ident wasn't given ident"),
+        Statement::Ident(val) => val,
+        Statement::IdentArray(val) => val,
+        Statement::InternalStr(val) => val,
+        Statement::Processed(val, _) => get_ident(*val)?,
+        Statement::DefinedCall(val, _) => get_ident(val.statement)?,
+        _ => panic!("get ident wasn't given ident: {:#?}", stmt),
     })
 }
 
