@@ -87,12 +87,12 @@ impl PreProcessor {
             }
             Statement::Ident(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::DefinedCall(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    node.statement = Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::IdentArray(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::DefinedCall(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    node.statement = Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
                 }
             }
             Statement::ClassDef(ident) => {
@@ -196,7 +196,7 @@ impl PreProcessor {
                 }
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::DefinedCall(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -237,7 +237,7 @@ impl PreProcessor {
 
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::DefinedCall(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -272,7 +272,7 @@ impl PreProcessor {
             Statement::Gone => {}
             Statement::Inserted(_) => {}
             Statement::InternalStr(_) => {}
-            Statement::DefinedCall(_, _) => {}
+            Statement::Defined(_, _) => {}
             Statement::InvalidCall(_, _) => {}
             Statement::Processed(_, _) => {}
             Statement::Undefined(_, _) => {}

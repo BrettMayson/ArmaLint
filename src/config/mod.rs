@@ -1,5 +1,5 @@
 mod parser;
-pub use parser::{parse, Node, Statement, AST};
+pub use parser::{parse, parse_with_resolver, Node, Statement, AST};
 
 mod preprocess;
 pub use preprocess::PreProcessor;
@@ -16,7 +16,7 @@ fn get_ident(stmt: Statement) -> Result<String, crate::ArmaLintError> {
         Statement::IdentArray(val) => val,
         Statement::InternalStr(val) => val,
         Statement::Processed(val, _) => get_ident(*val)?,
-        Statement::DefinedCall(val, _) => get_ident(val.statement)?,
+        Statement::Defined(val, _) => get_ident(val.statement)?,
         _ => panic!("get ident wasn't given ident: {:#?}", stmt),
     })
 }
@@ -31,13 +31,13 @@ fn basic_class() {
     digit = 149;
     dec = 12.42;
 };"###;
-    parse("basic.cpp", content, |_x| panic!("No import")).unwrap();
+    parse("basic.cpp", content).unwrap();
 }
 
 #[test]
 fn basic_statement_ast() {
     let content = r###"something = true;"###;
-    let ast = parse("basic.cpp", content, |_x| panic!("No Import")).unwrap();
+    let ast = parse("basic.cpp", content).unwrap();
     assert_eq!(
         ast.config.statement,
         Statement::Config(vec![Node {

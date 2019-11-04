@@ -120,6 +120,7 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
         Statement::Config(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
         // Ignore
         Statement::DefineMacro { .. } => None,
+        Statement::Define { .. } => None,
         _ => {
             panic!("Not ready for {:#?}", node);
         }
@@ -137,6 +138,7 @@ pub fn get_value(statement: Statement, expand: bool) -> Result<Entry, ArmaLintEr
             expand,
             elements: get_array(val)?,
         }),
+        Statement::Defined(val, _) => get_value(val.statement, expand)?,
         _ => {
             return Err(ArmaLintError::InvalidProperty(format!(
                 "Invalid property type `{}`",

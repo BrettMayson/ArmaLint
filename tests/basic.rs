@@ -4,15 +4,10 @@ use armalint::config::{Node, Statement};
 const FILE: &str = "tests/basic.cpp";
 const FILENAME: &str = "basic.cpp";
 
-fn import(filename: &str) -> String {
-    println!("Including {}", filename);
-    std::fs::read_to_string(filename).unwrap()
-}
-
 #[test]
 fn parse() {
     let content = std::fs::read_to_string(FILE).unwrap();
-    let ast = armalint::config::parse(FILENAME, &content, import).unwrap();
+    let ast = armalint::config::parse(FILENAME, &content).unwrap();
     use armalint::config::{Node, Statement};
     assert_eq!(
         ast.config.statement,
@@ -194,7 +189,7 @@ fn parse() {
 #[test]
 fn preprocess() {
     let content = std::fs::read_to_string(FILE).unwrap();
-    let ast = armalint::config::parse(FILENAME, &content, |_| panic!("no import")).unwrap();
+    let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
     let processed_ast = preprocessor.process(ast).unwrap();
     assert_eq!(
@@ -377,7 +372,7 @@ fn preprocess() {
 #[test]
 fn simplify() {
     let content = std::fs::read_to_string(FILE).unwrap();
-    let ast = armalint::config::parse(FILENAME, &content, |_| panic!("no import")).unwrap();
+    let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
     let processed = preprocessor.process(ast).unwrap();
     armalint::config::simplify::Config::from_ast(processed).unwrap();
@@ -386,7 +381,7 @@ fn simplify() {
 #[test]
 fn rapify() {
     let content = std::fs::read_to_string(FILE).unwrap();
-    let ast = armalint::config::parse(FILENAME, &content, |_| panic!("no import")).unwrap();
+    let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
     let processed = preprocessor.process(ast).unwrap();
     let simple = armalint::config::simplify::Config::from_ast(processed).unwrap();

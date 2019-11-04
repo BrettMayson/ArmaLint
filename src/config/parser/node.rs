@@ -1,4 +1,5 @@
 use super::{Rule, Statement};
+use crate::ArmaLintError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Node {
@@ -8,7 +9,7 @@ pub struct Node {
     pub statement: Statement,
 }
 
-type ResultNodeVec = Result<Vec<Node>, pest::error::Error<Rule>>;
+type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 
 impl Node {
     pub fn from_expr<F>(
@@ -16,9 +17,9 @@ impl Node {
         source: &str,
         pair: pest::iterators::Pair<Rule>,
         resolver: F,
-    ) -> Result<Node, pest::error::Error<Rule>>
+    ) -> Result<Node, ArmaLintError>
     where
-        F: Fn(&str) -> String + Copy,
+        F: Fn(&str) -> Result<String, std::io::Error> + Copy,
     {
         Ok(Node {
             file: file.to_string(),
@@ -104,7 +105,7 @@ impl Node {
                 // Directives
                 Rule::include => {
                     let filename = pair.into_inner().next().unwrap().as_str();
-                    super::parse(filename, &resolver(filename), resolver)
+                    super::parse_with_resolver(filename, &resolver(filename)?, resolver)
                         .unwrap()
                         .config
                         .statement
@@ -127,10 +128,9 @@ impl Node {
                             .into_inner()
                             .map(|x| String::from(x.as_str()))
                             .collect::<Vec<String>>(),
-                        //value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?)
                         value: {
                             let body = parts.next().unwrap();
-                            if let Ok(stmt) = super::parse(
+                            if let Ok(stmt) = super::parse_with_resolver(
                                 &format!("MACRO:{}", ident),
                                 &format!("{};", body.as_str().replace("\\\n", "\n").trim_end()),
                                 resolver,

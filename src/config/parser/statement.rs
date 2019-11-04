@@ -57,7 +57,7 @@ pub enum Statement {
     InternalStr(String),
     Undefined(String, Box<Statement>),
     // Definition, Original
-    DefinedCall(Box<Node>, Box<Node>),
+    Defined(Box<Node>, Box<Node>),
     InvalidCall(String, Box<Statement>),
     Inserted(Vec<Node>),
     Gone,

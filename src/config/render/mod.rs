@@ -8,12 +8,14 @@ pub struct Renderer {
     options: RenderOptions,
 }
 
+/// Renders processed AST or simplified configs
 impl Renderer {
-    /// Renders processed AST or simplified configs
+    /// Create a new Renderer with the passed options
     pub fn new(options: RenderOptions) -> Self {
         Self { options }
     }
 
+    /// Render the supplied AST
     pub fn render(&self, ast: AST) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         let config = match ast.config.statement {
@@ -91,7 +93,7 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&self.render_statement(*stmt, indent)?),
-            Statement::DefinedCall(node, _) => output.push_str(&self.render_node(*node.clone(), indent)?),
+            Statement::Defined(node, _) => output.push_str(&self.render_node(*node.clone(), indent)?),
             Statement::Inserted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
             // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
