@@ -115,51 +115,45 @@ fn parse() {
                         start: (72, (5, 8)),
                         end: (83, (5, 19)),
                         line: "QUOTE(NAME)".to_string(),
-                        statement: Statement::Unquoted(vec![Node {
-                            file: "tokens.cpp".to_string(),
-                            start: (72, (5, 8)),
-                            end: (83, (5, 19)),
-                            line: "QUOTE(NAME)".to_string(),
-                            statement: Statement::MacroCall {
-                                ident: "QUOTE".to_string(),
-                                args: vec![Node {
-                                    file: "tokens.cpp".to_string(),
-                                    start: (78, (5, 14)),
-                                    end: (82, (5, 18)),
-                                    line: "NAME".to_string(),
-                                    statement: Statement::MacroCallArg(vec![
-                                        Node {
-                                            file: "tokens.cpp".to_string(),
-                                            start: (78, (5, 14)),
-                                            end: (79, (5, 15)),
-                                            line: "N".to_string(),
-                                            statement: Statement::Char('N')
-                                        },
-                                        Node {
-                                            file: "tokens.cpp".to_string(),
-                                            start: (79, (5, 15)),
-                                            end: (80, (5, 16)),
-                                            line: "A".to_string(),
-                                            statement: Statement::Char('A')
-                                        },
-                                        Node {
-                                            file: "tokens.cpp".to_string(),
-                                            start: (80, (5, 16)),
-                                            end: (81, (5, 17)),
-                                            line: "M".to_string(),
-                                            statement: Statement::Char('M')
-                                        },
-                                        Node {
-                                            file: "tokens.cpp".to_string(),
-                                            start: (81, (5, 17)),
-                                            end: (82, (5, 18)),
-                                            line: "E".to_string(),
-                                            statement: Statement::Char('E')
-                                        }
-                                    ])
-                                }]
-                            }
-                        }])
+                        statement: Statement::MacroCall {
+                            ident: "QUOTE".to_string(),
+                            args: vec![Node {
+                                file: "tokens.cpp".to_string(),
+                                start: (78, (5, 14)),
+                                end: (82, (5, 18)),
+                                line: "NAME".to_string(),
+                                statement: Statement::MacroCallArg(vec![
+                                    Node {
+                                        file: "tokens.cpp".to_string(),
+                                        start: (78, (5, 14)),
+                                        end: (79, (5, 15)),
+                                        line: "N".to_string(),
+                                        statement: Statement::Char('N')
+                                    },
+                                    Node {
+                                        file: "tokens.cpp".to_string(),
+                                        start: (79, (5, 15)),
+                                        end: (80, (5, 16)),
+                                        line: "A".to_string(),
+                                        statement: Statement::Char('A')
+                                    },
+                                    Node {
+                                        file: "tokens.cpp".to_string(),
+                                        start: (80, (5, 16)),
+                                        end: (81, (5, 17)),
+                                        line: "M".to_string(),
+                                        statement: Statement::Char('M')
+                                    },
+                                    Node {
+                                        file: "tokens.cpp".to_string(),
+                                        start: (81, (5, 17)),
+                                        end: (82, (5, 18)),
+                                        line: "E".to_string(),
+                                        statement: Statement::Char('E')
+                                    }
+                                ])
+                            }]
+                        }
                     }),
                     expand: false
                 }
@@ -182,111 +176,105 @@ fn parse() {
                         start: (99, (6, 15)),
                         end: (124, (6, 40)),
                         line: "QUOTE(APPEND(USER_,NAME))".to_string(),
-                        statement: Statement::Unquoted(vec![Node {
-                            file: "tokens.cpp".to_string(),
-                            start: (99, (6, 15)),
-                            end: (124, (6, 40)),
-                            line: "QUOTE(APPEND(USER_,NAME))".to_string(),
-                            statement: Statement::MacroCall {
-                                ident: "QUOTE".to_string(),
-                                args: vec![Node {
+                        statement: Statement::MacroCall {
+                            ident: "QUOTE".to_string(),
+                            args: vec![Node {
+                                file: "tokens.cpp".to_string(),
+                                start: (105, (6, 21)),
+                                end: (123, (6, 39)),
+                                line: "APPEND(USER_,NAME)".to_string(),
+                                statement: Statement::MacroCallArg(vec![Node {
                                     file: "tokens.cpp".to_string(),
                                     start: (105, (6, 21)),
                                     end: (123, (6, 39)),
                                     line: "APPEND(USER_,NAME)".to_string(),
-                                    statement: Statement::MacroCallArg(vec![Node {
-                                        file: "tokens.cpp".to_string(),
-                                        start: (105, (6, 21)),
-                                        end: (123, (6, 39)),
-                                        line: "APPEND(USER_,NAME)".to_string(),
-                                        statement: Statement::MacroCall {
-                                            ident: "APPEND".to_string(),
-                                            args: vec![
-                                                Node {
-                                                    file: "tokens.cpp".to_string(),
-                                                    start: (112, (6, 28)),
-                                                    end: (117, (6, 33)),
-                                                    line: "USER_".to_string(),
-                                                    statement: Statement::MacroCallArg(vec![
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (112, (6, 28)),
-                                                            end: (113, (6, 29)),
-                                                            line: "U".to_string(),
-                                                            statement: Statement::Char('U')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (113, (6, 29)),
-                                                            end: (114, (6, 30)),
-                                                            line: "S".to_string(),
-                                                            statement: Statement::Char('S')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (114, (6, 30)),
-                                                            end: (115, (6, 31)),
-                                                            line: "E".to_string(),
-                                                            statement: Statement::Char('E')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (115, (6, 31)),
-                                                            end: (116, (6, 32)),
-                                                            line: "R".to_string(),
-                                                            statement: Statement::Char('R')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (116, (6, 32)),
-                                                            end: (117, (6, 33)),
-                                                            line: "_".to_string(),
-                                                            statement: Statement::Char('_')
-                                                        }
-                                                    ])
-                                                },
-                                                Node {
-                                                    file: "tokens.cpp".to_string(),
-                                                    start: (118, (6, 34)),
-                                                    end: (122, (6, 38)),
-                                                    line: "NAME".to_string(),
-                                                    statement: Statement::MacroCallArg(vec![
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (118, (6, 34)),
-                                                            end: (119, (6, 35)),
-                                                            line: "N".to_string(),
-                                                            statement: Statement::Char('N')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (119, (6, 35)),
-                                                            end: (120, (6, 36)),
-                                                            line: "A".to_string(),
-                                                            statement: Statement::Char('A')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (120, (6, 36)),
-                                                            end: (121, (6, 37)),
-                                                            line: "M".to_string(),
-                                                            statement: Statement::Char('M')
-                                                        },
-                                                        Node {
-                                                            file: "tokens.cpp".to_string(),
-                                                            start: (121, (6, 37)),
-                                                            end: (122, (6, 38)),
-                                                            line: "E".to_string(),
-                                                            statement: Statement::Char('E')
-                                                        }
-                                                    ])
-                                                }
-                                            ]
-                                        }
-                                    }])
-                                }]
-                            }
-                        }])
+                                    statement: Statement::MacroCall {
+                                        ident: "APPEND".to_string(),
+                                        args: vec![
+                                            Node {
+                                                file: "tokens.cpp".to_string(),
+                                                start: (112, (6, 28)),
+                                                end: (117, (6, 33)),
+                                                line: "USER_".to_string(),
+                                                statement: Statement::MacroCallArg(vec![
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (112, (6, 28)),
+                                                        end: (113, (6, 29)),
+                                                        line: "U".to_string(),
+                                                        statement: Statement::Char('U')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (113, (6, 29)),
+                                                        end: (114, (6, 30)),
+                                                        line: "S".to_string(),
+                                                        statement: Statement::Char('S')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (114, (6, 30)),
+                                                        end: (115, (6, 31)),
+                                                        line: "E".to_string(),
+                                                        statement: Statement::Char('E')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (115, (6, 31)),
+                                                        end: (116, (6, 32)),
+                                                        line: "R".to_string(),
+                                                        statement: Statement::Char('R')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (116, (6, 32)),
+                                                        end: (117, (6, 33)),
+                                                        line: "_".to_string(),
+                                                        statement: Statement::Char('_')
+                                                    }
+                                                ])
+                                            },
+                                            Node {
+                                                file: "tokens.cpp".to_string(),
+                                                start: (118, (6, 34)),
+                                                end: (122, (6, 38)),
+                                                line: "NAME".to_string(),
+                                                statement: Statement::MacroCallArg(vec![
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (118, (6, 34)),
+                                                        end: (119, (6, 35)),
+                                                        line: "N".to_string(),
+                                                        statement: Statement::Char('N')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (119, (6, 35)),
+                                                        end: (120, (6, 36)),
+                                                        line: "A".to_string(),
+                                                        statement: Statement::Char('A')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (120, (6, 36)),
+                                                        end: (121, (6, 37)),
+                                                        line: "M".to_string(),
+                                                        statement: Statement::Char('M')
+                                                    },
+                                                    Node {
+                                                        file: "tokens.cpp".to_string(),
+                                                        start: (121, (6, 37)),
+                                                        end: (122, (6, 38)),
+                                                        line: "E".to_string(),
+                                                        statement: Statement::Char('E')
+                                                    }
+                                                ])
+                                            }
+                                        ]
+                                    }
+                                }])
+                            }]
+                        }
                     }),
                     expand: false
                 }
@@ -408,54 +396,7 @@ fn preprocess() {
                         start: (72, (5, 8)),
                         end: (83, (5, 19)),
                         line: "QUOTE(NAME)".to_string(),
-                        statement: Statement::Processed(
-                            Box::new(Statement::InternalStr("Brett".to_string())),
-                            Box::new(Statement::Unquoted(vec![Node {
-                                file: "tokens.cpp".to_string(),
-                                start: (72, (5, 8)),
-                                end: (83, (5, 19)),
-                                line: "QUOTE(NAME)".to_string(),
-                                statement: Statement::MacroCall {
-                                    ident: "QUOTE".to_string(),
-                                    args: vec![Node {
-                                        file: "tokens.cpp".to_string(),
-                                        start: (78, (5, 14)),
-                                        end: (82, (5, 18)),
-                                        line: "NAME".to_string(),
-                                        statement: Statement::MacroCallArg(vec![
-                                            Node {
-                                                file: "tokens.cpp".to_string(),
-                                                start: (78, (5, 14)),
-                                                end: (79, (5, 15)),
-                                                line: "N".to_string(),
-                                                statement: Statement::Char('N')
-                                            },
-                                            Node {
-                                                file: "tokens.cpp".to_string(),
-                                                start: (79, (5, 15)),
-                                                end: (80, (5, 16)),
-                                                line: "A".to_string(),
-                                                statement: Statement::Char('A')
-                                            },
-                                            Node {
-                                                file: "tokens.cpp".to_string(),
-                                                start: (80, (5, 16)),
-                                                end: (81, (5, 17)),
-                                                line: "M".to_string(),
-                                                statement: Statement::Char('M')
-                                            },
-                                            Node {
-                                                file: "tokens.cpp".to_string(),
-                                                start: (81, (5, 17)),
-                                                end: (82, (5, 18)),
-                                                line: "E".to_string(),
-                                                statement: Statement::Char('E')
-                                            }
-                                        ])
-                                    }]
-                                }
-                            }]))
-                        )
+                        statement: Statement::InternalStr("Brett".to_string())
                     }),
                     expand: false
                 }
@@ -478,114 +419,7 @@ fn preprocess() {
                         start: (99, (6, 15)),
                         end: (124, (6, 40)),
                         line: "QUOTE(APPEND(USER_,NAME))".to_string(),
-                        statement: Statement::Processed(
-                            Box::new(Statement::InternalStr("USER_Brett".to_string())),
-                            Box::new(Statement::Unquoted(vec![Node {
-                                file: "tokens.cpp".to_string(),
-                                start: (99, (6, 15)),
-                                end: (124, (6, 40)),
-                                line: "QUOTE(APPEND(USER_,NAME))".to_string(),
-                                statement: Statement::MacroCall {
-                                    ident: "QUOTE".to_string(),
-                                    args: vec![Node {
-                                        file: "tokens.cpp".to_string(),
-                                        start: (105, (6, 21)),
-                                        end: (123, (6, 39)),
-                                        line: "APPEND(USER_,NAME)".to_string(),
-                                        statement: Statement::MacroCallArg(vec![Node {
-                                            file: "tokens.cpp".to_string(),
-                                            start: (105, (6, 21)),
-                                            end: (123, (6, 39)),
-                                            line: "APPEND(USER_,NAME)".to_string(),
-                                            statement: Statement::MacroCall {
-                                                ident: "APPEND".to_string(),
-                                                args: vec![
-                                                    Node {
-                                                        file: "tokens.cpp".to_string(),
-                                                        start: (112, (6, 28)),
-                                                        end: (117, (6, 33)),
-                                                        line: "USER_".to_string(),
-                                                        statement: Statement::MacroCallArg(vec![
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (112, (6, 28)),
-                                                                end: (113, (6, 29)),
-                                                                line: "U".to_string(),
-                                                                statement: Statement::Char('U')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (113, (6, 29)),
-                                                                end: (114, (6, 30)),
-                                                                line: "S".to_string(),
-                                                                statement: Statement::Char('S')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (114, (6, 30)),
-                                                                end: (115, (6, 31)),
-                                                                line: "E".to_string(),
-                                                                statement: Statement::Char('E')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (115, (6, 31)),
-                                                                end: (116, (6, 32)),
-                                                                line: "R".to_string(),
-                                                                statement: Statement::Char('R')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (116, (6, 32)),
-                                                                end: (117, (6, 33)),
-                                                                line: "_".to_string(),
-                                                                statement: Statement::Char('_')
-                                                            }
-                                                        ])
-                                                    },
-                                                    Node {
-                                                        file: "tokens.cpp".to_string(),
-                                                        start: (118, (6, 34)),
-                                                        end: (122, (6, 38)),
-                                                        line: "NAME".to_string(),
-                                                        statement: Statement::MacroCallArg(vec![
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (118, (6, 34)),
-                                                                end: (119, (6, 35)),
-                                                                line: "N".to_string(),
-                                                                statement: Statement::Char('N')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (119, (6, 35)),
-                                                                end: (120, (6, 36)),
-                                                                line: "A".to_string(),
-                                                                statement: Statement::Char('A')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (120, (6, 36)),
-                                                                end: (121, (6, 37)),
-                                                                line: "M".to_string(),
-                                                                statement: Statement::Char('M')
-                                                            },
-                                                            Node {
-                                                                file: "tokens.cpp".to_string(),
-                                                                start: (121, (6, 37)),
-                                                                end: (122, (6, 38)),
-                                                                line: "E".to_string(),
-                                                                statement: Statement::Char('E')
-                                                            }
-                                                        ])
-                                                    }
-                                                ]
-                                            }
-                                        }])
-                                    }]
-                                }
-                            }]))
-                        )
+                        statement: Statement::InternalStr("USER_Brett".to_string())
                     }),
                     expand: false
                 }
