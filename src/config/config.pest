@@ -54,7 +54,7 @@ define_macro = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_macro_args ~ define_w
 define_macro_args = !{"(" ~ ident ~ ("," ~ ident)* ~ ")" }
 define_macro_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ ~ "\n" }
 
-undef = ${ "#undef" ~ WHITESPACE+ ~ ident ~ "\n" }
+undef = ${ "#undef" ~ WHITESPACE+ ~ ident }
 ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n#else\n" ~ conditional_block)? ~ "\n#endif" }
 conditional_block = !{ items }
 

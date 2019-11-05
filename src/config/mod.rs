@@ -34,23 +34,26 @@ fn basic_statement_ast() {
         ast.config.statement,
         Statement::Config(vec![Node {
             file: "basic.cpp".to_string(),
-            start: (1, 1),
-            end: (1, 17),
+            start: (0, (1, 1)),
+            end: (16, (1, 17)),
+            line: "something = true".to_string(),
             statement: Statement::Property {
                 ident: Box::new(Node {
                     file: "basic.cpp".to_string(),
-                    start: (1, 1),
-                    end: (1, 10),
+                    start: (0, (1, 1)),
+                    end: (9, (1, 10)),
+                    line: "something".to_string(),
                     statement: Statement::Ident("something".to_string())
                 }),
                 value: Box::new(Node {
                     file: "basic.cpp".to_string(),
-                    start: (1, 13),
-                    end: (1, 17),
+                    start: (12, (1, 13)),
+                    end: (16, (1, 17)),
+                    line: "true".to_string(),
                     statement: Statement::Bool(true)
                 }),
-                expand: false,
-            },
+                expand: false
+            }
         }])
     );
 }

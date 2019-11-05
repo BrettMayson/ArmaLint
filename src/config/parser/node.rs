@@ -4,8 +4,9 @@ use crate::ArmaLintError;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Node {
     pub file: String,
-    pub start: (usize, usize),
-    pub end: (usize, usize),
+    pub start: (usize, (usize, usize)),
+    pub end: (usize, (usize, usize)),
+    pub line: String,
     pub statement: Statement,
 }
 
@@ -23,8 +24,9 @@ impl Node {
     {
         Ok(Node {
             file: file.to_string(),
-            start: pair.as_span().start_pos().line_col(),
-            end: pair.as_span().end_pos().line_col(),
+            start: (pair.as_span().start_pos().pos(), pair.as_span().start_pos().line_col()),
+            end: (pair.as_span().end_pos().pos(), pair.as_span().end_pos().line_col()),
+            line: pair.as_span().as_str().to_string(),
             statement: match pair.as_rule() {
                 Rule::config => Statement::Config(
                     pair.into_inner()

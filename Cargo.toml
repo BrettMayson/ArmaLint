@@ -5,15 +5,18 @@ authors = ["Brett <brett@bmandesigns.com>"]
 edition = "2018"
 build = "build.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 pest = "*"
 pest_derive = "*"
-regex = "*"
-strum = "*"
-strum_macros = "*"
+regex = "1.2"
+strum = "0.16"
+strum_macros = "0.16"
 byteorder = "*"
+
+# Application
+lazy_static = "1.3"
+clap = "2.33"
+colored = "1.8"
 
 [build-dependencies]
 pest = "*"

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{Node, Statement, AST, Report};
+use super::{Node, Report, Statement, AST};
 use crate::ArmaLintError;
 
 type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
@@ -256,7 +256,6 @@ impl PreProcessor {
                         Box::new(node.statement.clone()),
                     );
                     self.report.warnings.push(node.clone());
-                    self.valid = false;
                 }
             }
             Statement::IfDef {
