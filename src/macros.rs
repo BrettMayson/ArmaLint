@@ -18,30 +18,20 @@ macro_rules! iformat {
 macro_rules! get_message {
     ($n:ident) => {
         match $n.statement {
-            crate::config::Statement::Undefined(ref v, ref o) => {
-                match &**o {
-                    crate::config::Statement::Undefine(ref i) => {
-                        (
-                            v.clone(),
-                            Some(7),
-                            i.len(),
-                            Some("remove this line"),
-                            crate::HelpType::Help,
-                        )
-                    }
-                    crate::config::Statement::MacroCall { ident, .. } => {
-                        (
-                            v.clone(),
-                            Some(0),
-                            ident.len(),
-                            None,
-                            crate::HelpType::None,
-                        )
-                    },
-                    _ => panic!("Not an error / warning: {:#?}", $n)
+            crate::config::Statement::Undefined(ref v, ref o) => match &**o {
+                crate::config::Statement::Undefine(ref i) => (
+                    v.clone(),
+                    Some(7),
+                    i.len(),
+                    Some("remove this line"),
+                    crate::HelpType::Help,
+                ),
+                crate::config::Statement::MacroCall { ident, .. } => {
+                    (v.clone(), Some(0), ident.len(), None, crate::HelpType::None)
                 }
+                _ => panic!("Not an error / warning: {:#?}", $n),
             },
-            _ => {panic!("No way to warn for {:?}", $n)}
+            _ => panic!("No way to warn for {:?}", $n),
         }
     };
 }
@@ -56,23 +46,40 @@ macro_rules! display_info {
         let line = ($n.start.1).0.to_string().blue().bold();
         let space = repeat!(" ", line.len() + 2);
         let content = $n.line.clone();
-        let range = format!("{}:{}-{}:{}", ($n.start.1).0,  ($n.start.1).1, ($n.end.1).0,  ($n.end.1).1);
-        println!("{}", crate::iformat!(
-            "  {arrow} {file} {range}\n{space}{sep}\n {line} {sep} {content}",
-            arrow, file, range, sep, line, space, content
-        ));
+        let range = format!(
+            "{}:{}-{}:{}",
+            ($n.start.1).0,
+            ($n.start.1).1,
+            ($n.end.1).0,
+            ($n.end.1).1
+        );
+        println!(
+            "{}",
+            crate::iformat!(
+                "  {arrow} {file} {range}\n{space}{sep}\n {line} {sep} {content}",
+                arrow,
+                file,
+                range,
+                sep,
+                line,
+                space,
+                content
+            )
+        );
         if let Some(start) = help_start {
             let arrows = match help_type {
                 crate::HelpType::Help => repeat!("^", help_len).yellow(),
                 crate::HelpType::Note => repeat!("^", help_len).blue(),
                 crate::HelpType::None => repeat!("^", help_len).blue(),
-            }.bold();
+            }
+            .bold();
             if let Some(help) = help_message {
                 let help = match help_type {
                     crate::HelpType::Help => format!("help: {}", help).yellow(),
                     crate::HelpType::Note => format!("note: {}", help).blue(),
                     crate::HelpType::None => String::new().bold(),
-                }.bold();
+                }
+                .bold();
                 println!("{}{} {}{} {}", space, sep, repeat!(" ", start), arrows, help);
             } else {
                 println!("{}{} {}{}", space, sep, repeat!(" ", start), arrows);

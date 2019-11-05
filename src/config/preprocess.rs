@@ -296,7 +296,7 @@ impl PreProcessor {
                 } else {
                     ident.to_string()
                 };
-                output.push(format!("{}", data));
+                output.push(data.to_string());
             } else if token.contains("##") {
                 let token_parts = token.split("##");
                 let mut part_str = Vec::new();
