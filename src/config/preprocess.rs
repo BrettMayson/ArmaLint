@@ -114,6 +114,11 @@ impl PreProcessor {
                 self.macros.remove(ident);
                 let data = self.process_node(*value.clone(), macro_root.clone())?;
                 self.defines.insert(ident.to_string(), data);
+                if ident.to_uppercase() != *ident {
+                    let mut warn_node = node.clone();
+                    warn_node.statement = Statement::NonUppercaseDefine(Box::new(node.statement.clone()));
+                    self.report.warnings.push(warn_node);
+                }
             }
             Statement::DefineMacro { ident, args, value } => {
                 self.defines.remove(ident);
@@ -281,6 +286,8 @@ impl PreProcessor {
             Statement::InvalidCall(_, _) => {}
             Statement::Processed(_, _) => {}
             Statement::Undefined(_, _) => {}
+            // Warnings & erors
+            Statement::NonUppercaseDefine(_) => {}
         }
         Ok(node)
     }

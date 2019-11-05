@@ -112,6 +112,8 @@ impl Renderer {
             Statement::MacroCall { .. } => {}
             Statement::InvalidCall(_, _) => {}
             Statement::Gone => {}
+            // Warnings & Errors
+            Statement::NonUppercaseDefine(_) => {}
         }
         Ok(output)
     }

@@ -61,4 +61,7 @@ pub enum Statement {
     InvalidCall(String, Box<Statement>),
     Inserted(Vec<Node>),
     Gone,
+
+    // Warnings & Errors
+    NonUppercaseDefine(Box<Statement>),
 }

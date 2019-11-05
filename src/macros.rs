@@ -23,7 +23,7 @@ macro_rules! get_message {
                     v.clone(),
                     Some(7),
                     i.len(),
-                    Some("remove this line"),
+                    Some("remove this line".to_string()),
                     crate::HelpType::Help,
                 ),
                 crate::config::Statement::MacroCall { ident, .. } => {
@@ -31,6 +31,19 @@ macro_rules! get_message {
                 }
                 _ => panic!("Not an error / warning: {:#?}", $n),
             },
+            crate::config::Statement::NonUppercaseDefine(ref i) => {
+                let ident = match &**i {
+                    crate::config::Statement::Define { ident, .. } => ident.clone(),
+                    _ => panic!("Non upper case: {:#?}", i),
+                };
+                (
+                    "Use of non-uppercase characters in define identifier".to_string(),
+                    Some(8),
+                    ident.len(),
+                    Some(format!("replace with `{}`", ident.to_uppercase())),
+                    crate::HelpType::Help,
+                )
+            }
             _ => panic!("No way to warn for {:?}", $n),
         }
     };
