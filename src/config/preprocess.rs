@@ -110,20 +110,53 @@ impl PreProcessor {
             }
             // Directives
             Statement::Define { ident, value } => {
-                self.defines.remove(ident);
-                self.macros.remove(ident);
+                let mut warn_node = node_clone.clone();
+                if let Some(old) = self.defines.remove(ident) {
+                    warn_node.statement = Statement::Redefine(
+                        format!("Redefining `{}`", ident),
+                        Box::new(warn_node.statement.clone()),
+                        Box::new(old),
+                    );
+                    self.report.warnings.push(warn_node.clone());
+                };
+                if let Some(old) = self.macros.remove(ident) {
+                    warn_node.statement = Statement::Redefine(
+                        format!("Redefining `{}`", ident),
+                        Box::new(warn_node.statement.clone()),
+                        Box::new(old.1),
+                    );
+                    self.report.warnings.push(warn_node.clone());
+                };
                 let data = self.process_node(*value.clone(), macro_root.clone())?;
                 self.defines.insert(ident.to_string(), data);
                 if ident.to_uppercase() != *ident {
-                    let mut warn_node = node.clone();
                     warn_node.statement = Statement::NonUppercaseDefine(Box::new(node.statement.clone()));
-                    self.report.warnings.push(warn_node);
+                    self.report.warnings.push(warn_node.clone());
                 }
             }
-            Statement::DefineMacro { ident, args, value } => {
-                self.defines.remove(ident);
-                self.macros.remove(ident);
+            Statement::DefineMacro { ident, args, value, .. } => {
+                let mut warn_node = node_clone.clone();
+                if let Some(old) = self.defines.remove(ident) {
+                    warn_node.statement = Statement::Redefine(
+                        format!("Redefining `{}`", ident),
+                        Box::new(warn_node.statement.clone()),
+                        Box::new(old),
+                    );
+                    self.report.warnings.push(warn_node.clone());
+                };
+                if let Some(old) = self.macros.remove(ident) {
+                    warn_node.statement = Statement::Redefine(
+                        format!("Redefining `{}`", ident),
+                        Box::new(warn_node.statement.clone()),
+                        Box::new(old.1),
+                    );
+                    self.report.warnings.push(warn_node.clone());
+                };
                 self.macros.insert(ident.to_string(), (args.to_vec(), *value.clone()));
+                if ident.to_uppercase() != *ident {
+                    warn_node.statement = Statement::NonUppercaseDefine(Box::new(node.statement.clone()));
+                    self.report.warnings.push(warn_node.clone());
+                }
             }
             Statement::MacroCall { ident, args } => {
                 if let Some(mac) = self.macros.get(ident) {
@@ -249,6 +282,7 @@ impl PreProcessor {
                     Box::new(if let Some(val) = self.defines.get(&output) {
                         Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
                     } else {
+                        self.report.warnings.push(node_clone.clone());
                         Statement::InternalStr(self.tokens(output)?)
                     }),
                     Box::new(node.statement),
@@ -288,6 +322,7 @@ impl PreProcessor {
             Statement::Undefined(_, _) => {}
             // Warnings & erors
             Statement::NonUppercaseDefine(_) => {}
+            Statement::Redefine(_, _, _) => {}
         }
         Ok(node)
     }

@@ -114,6 +114,7 @@ impl Renderer {
             Statement::Gone => {}
             // Warnings & Errors
             Statement::NonUppercaseDefine(_) => {}
+            Statement::Redefine(_, _, _) => {}
         }
         Ok(output)
     }

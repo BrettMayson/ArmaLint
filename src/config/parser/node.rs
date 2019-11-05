@@ -18,11 +18,12 @@ impl Node {
         source: &str,
         pair: pest::iterators::Pair<Rule>,
         resolver: F,
-    ) -> Result<Node, ArmaLintError>
+    ) -> Result<(Node, Vec<(String, Option<(String, usize)>, String)>), ArmaLintError>
     where
         F: Fn(&str) -> Result<String, std::io::Error> + Copy,
     {
-        Ok(Node {
+        let mut included: Vec<(String, Option<(String, usize)>, String)> = Vec::new();
+        let node = Node {
             file: file.to_string(),
             start: (pair.as_span().start_pos().pos(), pair.as_span().start_pos().line_col()),
             end: (pair.as_span().end_pos().pos(), pair.as_span().end_pos().line_col()),
@@ -30,61 +31,119 @@ impl Node {
             statement: match pair.as_rule() {
                 Rule::config => Statement::Config(
                     pair.into_inner()
-                        .map(|x| Node::from_expr(file, source, x, resolver))
+                        .map(|x| {
+                            let r = Node::from_expr(file, source, x, resolver);
+                            if let Ok((n, i)) = r {
+                                i.iter().for_each(|x| included.push(x.clone()));
+                                Ok(n)
+                            } else {
+                                Err(r.err().unwrap())
+                            }
+                        })
                         .collect::<ResultNodeVec>()?,
                 ),
                 Rule::class => {
                     let mut parts = pair.into_inner();
                     Statement::Class {
-                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        ident: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
                         extends: None,
                         props: parts
-                            .map(|x| Node::from_expr(file, source, x, resolver))
+                            .map(|x| {
+                                let r = Node::from_expr(file, source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
                             .collect::<ResultNodeVec>()?,
                     }
                 }
                 Rule::classextends => {
                     let mut parts = pair.into_inner();
                     Statement::Class {
-                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
-                        extends: Some(Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?)),
+                        ident: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
+                        extends: Some(Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        })),
                         props: parts
-                            .map(|x| Node::from_expr(file, source, x, resolver))
+                            .map(|x| {
+                            let r = Node::from_expr(file, source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
                             .collect::<ResultNodeVec>()?,
                     }
                 }
-                Rule::classdef => Statement::ClassDef(Box::new(Node::from_expr(
-                    file,
-                    source,
-                    pair.into_inner().next().unwrap(),
-                    resolver,
-                )?)),
-                Rule::classdelete => Statement::ClassDelete(Box::new(Node::from_expr(
-                    file,
-                    source,
-                    pair.into_inner().next().unwrap(),
-                    resolver,
-                )?)),
+                Rule::classdef => Statement::ClassDef(Box::new({
+                    let (n, i) = Node::from_expr(file, source, pair.into_inner().next().unwrap(), resolver)?;
+                    i.iter().for_each(|x| included.push(x.clone()));
+                    n
+                })),
+                Rule::classdelete => Statement::ClassDelete(Box::new({
+                    let (n, i) = Node::from_expr(file, source, pair.into_inner().next().unwrap(), resolver)?;
+                    i.iter().for_each(|x| included.push(x.clone()));
+                    n
+                })),
                 Rule::prop => {
                     let mut parts = pair.into_inner();
                     Statement::Property {
-                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
-                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        ident: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
+                        value: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
                         expand: false,
                     }
                 }
                 Rule::propexpand => {
                     let mut parts = pair.into_inner();
                     Statement::Property {
-                        ident: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
-                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        ident: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
+                        value: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
                         expand: true,
                     }
                 }
                 Rule::bool => Statement::Bool(pair.as_str() == "true"),
                 Rule::array => Statement::Array(
                     pair.into_inner()
-                        .map(|x| Node::from_expr(file, source, x, resolver))
+                        .map(|x| {
+                            let r = Node::from_expr(file, source, x, resolver);
+                            if let Ok((n, i)) = r {
+                                i.iter().for_each(|x| included.push(x.clone()));
+                                Ok(n)
+                            } else {
+                                Err(r.err().unwrap())
+                            }
+                        })
                         .collect::<ResultNodeVec>()?,
                 ),
                 Rule::float => Statement::Float(pair.as_str().parse().unwrap()),
@@ -95,7 +154,15 @@ impl Node {
                 Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
                 Rule::unquoted => Statement::Unquoted(
                     pair.into_inner()
-                        .map(|x| Node::from_expr(file, source, x, resolver))
+                        .map(|x| {
+                            let r = Node::from_expr(file, source, x, resolver);
+                            if let Ok((n, i)) = r {
+                                i.iter().for_each(|x| included.push(x.clone()));
+                                Ok(n)
+                            } else {
+                                Err(r.err().unwrap())
+                            }
+                        })
                         .collect::<ResultNodeVec>()?,
                 ),
                 // Special
@@ -107,7 +174,9 @@ impl Node {
                 // Directives
                 Rule::include => {
                     let filename = pair.into_inner().next().unwrap().as_str();
-                    super::parse_with_resolver(filename, &resolver(filename)?, resolver)
+                    let content = &resolver(filename)?;
+                    included.push((filename.to_string(), None, content.to_string()));
+                    super::parse_with_resolver(filename, content, resolver)
                         .unwrap()
                         .config
                         .statement
@@ -116,30 +185,37 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Define {
                         ident: String::from(parts.next().unwrap().as_str()),
-                        value: Box::new(Node::from_expr(file, source, parts.next().unwrap(), resolver)?),
+                        value: Box::new({
+                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            i.iter().for_each(|x| included.push(x.clone()));
+                            n
+                        }),
                     }
                 }
                 Rule::define_macro => {
                     let mut parts = pair.into_inner();
                     let ident = parts.next().unwrap().as_str();
+                    let args = parts.next().unwrap();
+                    let body = parts.next().unwrap();
                     Statement::DefineMacro {
                         ident: ident.to_string(),
-                        args: parts
-                            .next()
-                            .unwrap()
-                            .into_inner()
+                        args: args.into_inner()
                             .map(|x| String::from(x.as_str()))
                             .collect::<Vec<String>>(),
                         value: {
-                            let body = parts.next().unwrap();
                             if let Ok(stmt) = super::parse_with_resolver(
                                 &format!("MACRO:{}", ident),
-                                &format!("{};", body.as_str().replace("\\\n", "\n").trim_end()),
+                                &format!("{};", body.as_str().trim_end_matches('\n').replace("\\\n", "\n")),
                                 resolver,
                             ) {
+                                included.push((format!("MACRO:{}", ident), Some((file.to_string(), body.as_span().start_pos().line_col().0)), body.as_str().trim_end_matches('\n').replace("\\\n", "\n")));
                                 Box::new(stmt.config)
                             } else {
-                                Box::new(Node::from_expr(file, source, body, resolver)?)
+                                Box::new({
+                                    let (n, i) = Node::from_expr(file, source, body.clone(), resolver)?;
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    n
+                                })
                             }
                         },
                     }
@@ -152,17 +228,33 @@ impl Node {
                             .next()
                             .unwrap()
                             .into_inner()
-                            .map(|x| Node::from_expr(file, source, x, resolver))
+                            .map(|x| {
+                                let r = Node::from_expr(file, source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
                             .collect::<ResultNodeVec>()?,
                     }
                 }
                 Rule::macro_call_arg => Statement::MacroCallArg(
                     pair.into_inner()
-                        .map(|x| Node::from_expr(file, source, x, resolver))
+                        .map(|x| {
+                            let r = Node::from_expr(file, source, x, resolver);
+                            if let Ok((n, i)) = r {
+                                i.iter().for_each(|x| included.push(x.clone()));
+                                Ok(n)
+                            } else {
+                                Err(r.err().unwrap())
+                            }
+                        })
                         .collect::<ResultNodeVec>()?,
                 ),
                 Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
-                Rule::define_macro_body => Statement::MacroBody(pair.as_str().to_owned()),
+                Rule::define_macro_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
                 Rule::undef => Statement::Undefine(pair.into_inner().next().unwrap().as_str().to_string()),
                 Rule::ifdef => {
                     let mut parts = pair.into_inner();
@@ -172,13 +264,29 @@ impl Node {
                             .next()
                             .unwrap()
                             .into_inner()
-                            .map(|x| Node::from_expr(file, source, x, resolver))
+                            .map(|x| {
+                                let r = Node::from_expr(file, source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
                             .collect::<ResultNodeVec>()?,
                         negative: {
                             if let Some(part) = parts.next() {
                                 Some(
                                     part.into_inner()
-                                        .map(|x| Node::from_expr(file, source, x, resolver))
+                                        .map(|x| {
+                                            let r = Node::from_expr(file, source, x, resolver);
+                                            if let Ok((n, i)) = r {
+                                                i.iter().for_each(|x| included.push(x.clone()));
+                                                Ok(n)
+                                            } else {
+                                                Err(r.err().unwrap())
+                                            }
+                                        })
                                         .collect::<ResultNodeVec>()?,
                                 )
                             } else {
@@ -203,6 +311,7 @@ impl Node {
                 Rule::COMMENT => unimplemented!(),
                 Rule::WHITESPACE => unimplemented!(),
             },
-        })
+        };
+        Ok((node, included))
     }
 }

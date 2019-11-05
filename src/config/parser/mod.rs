@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::ArmaLintError;
 
 mod node;
@@ -16,6 +18,7 @@ pub struct ConfigParser;
 /// Abstract Syntax Tree
 pub struct AST {
     pub config: Node,
+    pub files: HashMap<String, (Option<(String, usize)>, String)>,
     pub processed: bool,
     pub valid: bool,
 }
@@ -31,11 +34,16 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         return Err(ArmaLintError::NotRoot);
     }
     let clean = source.replace("\r", "");
+    let mut files = HashMap::new();
+    files.insert(file.to_string(), (None, clean.to_string()));
     let pair = ConfigParser::parse(Rule::config, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
+    let (config, included) = Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?;
+    included.into_iter().for_each(|x| {files.insert(x.0, (x.1, x.2));});
     Ok(AST {
-        config: Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?,
+        config,
+        files,
         processed: false,
         valid: true,
     })
@@ -59,11 +67,16 @@ where
         return Err(ArmaLintError::NotRoot);
     }
     let clean = source.replace("\r", "");
+    let mut files = HashMap::new();
+    files.insert(file.to_string(), (None, clean.to_string()));
     let pair = ConfigParser::parse(Rule::config, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
+    let (config, included) = Node::from_expr(file, source, pair, resolver)?;
+    included.into_iter().for_each(|x| {files.insert(x.0, (x.1, x.2));});
     Ok(AST {
-        config: Node::from_expr(file, source, pair, resolver)?,
+        config,
+        files,
         processed: false,
         valid: true,
     })

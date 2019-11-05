@@ -23,7 +23,6 @@ pub mod config;
 pub enum HelpType {
     Help,
     Note,
-    None,
 }
 
 // Application

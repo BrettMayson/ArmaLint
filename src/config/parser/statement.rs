@@ -64,4 +64,5 @@ pub enum Statement {
 
     // Warnings & Errors
     NonUppercaseDefine(Box<Statement>),
+    Redefine(String, Box<Statement>, Box<Node>),
 }

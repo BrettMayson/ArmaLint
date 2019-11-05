@@ -76,7 +76,7 @@ fn parse() {
                         start: (36, (2, 18)),
                         end: (39, (3, 1)),
                         line: "#s\n".to_string(),
-                        statement: Statement::MacroBody("#s\n".to_string())
+                        statement: Statement::MacroBody("#s".to_string())
                     })
                 }
             },
@@ -93,7 +93,7 @@ fn parse() {
                         start: (59, (3, 21)),
                         end: (64, (4, 1)),
                         line: "a##b\n".to_string(),
-                        statement: Statement::MacroBody("a##b\n".to_string())
+                        statement: Statement::MacroBody("a##b".to_string())
                     })
                 }
             },
@@ -369,7 +369,7 @@ fn preprocess() {
                         start: (36, (2, 18)),
                         end: (39, (3, 1)),
                         line: "#s\n".to_string(),
-                        statement: Statement::MacroBody("#s\n".to_string())
+                        statement: Statement::MacroBody("#s".to_string())
                     })
                 }
             },
@@ -386,7 +386,7 @@ fn preprocess() {
                         start: (59, (3, 21)),
                         end: (64, (4, 1)),
                         line: "a##b\n".to_string(),
-                        statement: Statement::MacroBody("a##b\n".to_string())
+                        statement: Statement::MacroBody("a##b".to_string())
                     })
                 }
             },

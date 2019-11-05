@@ -25,10 +25,10 @@ impl Command for Lint {
                 println!("Syntax: Valid");
                 println!("PreProcessor: {}", if processed.valid { "Valid" } else { "Invalid" });
                 for warning in report.warnings {
-                    node_warning!(warning);
+                    node_warning!(processed.files, warning);
                 }
                 for error in report.errors {
-                    node_error!(error);
+                    node_error!(processed.files, error);
                 }
             }
             _ => {
