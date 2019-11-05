@@ -115,14 +115,14 @@ macro_rules! display_info {
         let (_, help_line, help_start, help_len, help_message, help_type) = $i;
         let arrow = "-->".blue().bold();
         let sep = "|".blue().bold();
-        let mut file = $n.file.clone();
-        let mut offset = 0 as usize;
+        let file = $n.file.clone();
 
-        if file.starts_with("MACRO:") {
+        let (file, offset) = if file.starts_with("MACRO:") {
             let (name, off) = $c.get(&file).unwrap().0.as_ref().unwrap();
-            file = name.clone();
-            offset = *off - 1;
-        }
+            (name.clone(), *off - 1)
+        } else {
+            ($n.file.clone(), 0 as usize)
+        };
 
         let range = format!(
             "{}:{}-{}:{}",

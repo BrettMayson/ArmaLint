@@ -51,7 +51,9 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let (config, included) = Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?;
-    included.into_iter().for_each(|x| {files.insert(x.0, (x.1, x.2));});
+    included.into_iter().for_each(|x| {
+        files.insert(x.0, (x.1, x.2));
+    });
     Ok(AST {
         config,
         files,
@@ -84,7 +86,9 @@ where
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let (config, included) = Node::from_expr(file, source, pair, resolver)?;
-    included.into_iter().for_each(|x| {files.insert(x.0, (x.1, x.2));});
+    included.into_iter().for_each(|x| {
+        files.insert(x.0, (x.1, x.2));
+    });
     Ok(AST {
         config,
         files,

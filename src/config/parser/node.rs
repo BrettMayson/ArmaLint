@@ -79,7 +79,7 @@ impl Node {
                         })),
                         props: parts
                             .map(|x| {
-                            let r = Node::from_expr(file, source, x, resolver);
+                                let r = Node::from_expr(file, source, x, resolver);
                                 if let Ok((n, i)) = r {
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     Ok(n)
@@ -199,16 +199,18 @@ impl Node {
                     let body = parts.next().unwrap();
                     Statement::DefineMacro {
                         ident: ident.to_string(),
-                        args: args.into_inner()
-                            .map(|x| String::from(x.as_str()))
-                            .collect::<Vec<String>>(),
+                        args: args.into_inner().map(|x| String::from(x.as_str())).collect::<Vec<String>>(),
                         value: {
                             if let Ok(stmt) = super::parse_with_resolver(
                                 &format!("MACRO:{}", ident),
                                 &format!("{};", body.as_str().trim_end_matches('\n').replace("\\\n", "\n")),
                                 resolver,
                             ) {
-                                included.push((format!("MACRO:{}", ident), Some((file.to_string(), body.as_span().start_pos().line_col().0)), body.as_str().trim_end_matches('\n').replace("\\\n", "\n")));
+                                included.push((
+                                    format!("MACRO:{}", ident),
+                                    Some((file.to_string(), body.as_span().start_pos().line_col().0)),
+                                    body.as_str().trim_end_matches('\n').replace("\\\n", "\n"),
+                                ));
                                 Box::new(stmt.config)
                             } else {
                                 Box::new({
