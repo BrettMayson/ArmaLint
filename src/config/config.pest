@@ -1,6 +1,6 @@
 file = { SOI ~ config ~ EOI }
-config = { items }
-items = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)+ }
+config = { item+ }
+item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive) }
 
 prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
@@ -23,15 +23,15 @@ integer = @{ ASCII_DIGIT+ }
 float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
 string_wrapper = _{ "\"" ~ string ~ "\"" }
 string = @{ ( "\"\"" | (!"\"" ~ ANY) )* }
-unquoted = ${ ( macro_call | "\\\n" | "\\\r\n" | char )* }
+unquoted = ${ ( macro_call | "\\\n" | "\\\r\n" | char )+ }
 char = { !("\n" | ";") ~ ANY }
 
 special = { "__FILE__" | "__LINE__" }
 
 array = !{ "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
 
-class = { "class " ~ ident ~ "{" ~ items ~ "}" }
-classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ items ~ "}" }
+class = { "class " ~ ident ~ "{" ~ item+ ~ "}" }
+classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ item+ ~ "}" }
 classdef = { "class " ~ ident }
 classdelete = { "delete " ~ ident }
 
@@ -57,7 +57,7 @@ define_macro_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ ~ "\n" }
 
 undef = ${ "#undef" ~ WHITESPACE+ ~ ident }
 ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n#else\n" ~ conditional_block)? ~ "\n#endif" }
-conditional_block = !{ items }
+conditional_block = !{ item+ }
 
 COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 WHITESPACE = _{ " " | "\t" | "\r" | (!"\\" ~ "\n") }

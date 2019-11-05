@@ -47,9 +47,10 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
     let clean = source.replace("\r", "");
     let mut files = HashMap::new();
     files.insert(file.to_string(), (None, clean.to_string()));
-    let pair = ConfigParser::parse(Rule::config, &clean)?
+    let pair = ConfigParser::parse(Rule::file, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
+    let pair = pair.into_inner().next().unwrap();
     let (config, included) = Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
@@ -82,9 +83,10 @@ where
     let clean = source.replace("\r", "");
     let mut files = HashMap::new();
     files.insert(file.to_string(), (None, clean.to_string()));
-    let pair = ConfigParser::parse(Rule::config, &clean)?
+    let pair = ConfigParser::parse(Rule::file, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
+    let pair = pair.into_inner().next().unwrap();
     let (config, included) = Node::from_expr(file, source, pair, resolver)?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
@@ -105,6 +107,7 @@ impl From<pest::error::Error<Rule>> for ArmaLintError {
             pest::error::ErrorVariant::ParsingError { positives, negatives } => ArmaLintError::ParsingError {
                 positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
                 negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
+                position: err.line_col
             },
             pest::error::ErrorVariant::CustomError { message } => {
                 panic!(message);

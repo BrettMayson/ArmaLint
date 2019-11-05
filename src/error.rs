@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub enum ArmaLintError {
-    ParsingError { positives: Vec<String>, negatives: Vec<String> },
+    ParsingError { positives: Vec<String>, negatives: Vec<String>, position: pest::error::LineColLocation },
     InvalidInput(String),
     InvalidProperty(String),
     NotProcessed,

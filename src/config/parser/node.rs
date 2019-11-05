@@ -297,12 +297,11 @@ impl Node {
                         },
                     }
                 }
-
                 // Ignored
-                Rule::EOI => unimplemented!(),
+                Rule::EOI => {Statement::Gone},
                 Rule::file => unimplemented!(),
                 Rule::string_wrapper => unimplemented!(),
-                Rule::items => unimplemented!(),
+                Rule::item => unimplemented!(),
                 Rule::value => unimplemented!(),
                 Rule::directive => unimplemented!(),
                 Rule::macro_call_args => unimplemented!(),
