@@ -17,17 +17,14 @@ pub struct ConfigParser;
 pub struct AST {
     pub config: Node,
     pub processed: bool,
+    pub valid: bool,
 }
 
 /// Converts a raw string into an AST
 ///
-/// The resolver is used to find files for #include
-/// ```rs
-/// let content = "#include <myfile.hpp>";
-///
-/// armalint::config::parse("config.cpp", content, |filename| {
-///     std::fs::read_to_string(filename)
-/// });
+/// ```
+/// let content = "value = 123;";
+/// armalint::config::parse("config.cpp", content);
 /// ```
 pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
     if source.starts_with("#s") {
@@ -40,16 +37,17 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
     Ok(AST {
         config: Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?,
         processed: false,
+        valid: true,
     })
 }
 
 /// Use a custom resolver
 ///
 /// The resolver is used to find files for #include
-/// ```rs
+/// ```
 /// let content = "#include <myfile.hpp>";
 ///
-/// armalint::config::parse("config.cpp", content, |filename| {
+/// armalint::config::parse_with_resolver("config.cpp", content, |filename| {
 ///     std::fs::read_to_string(filename)
 /// });
 /// ```
@@ -67,6 +65,7 @@ where
     Ok(AST {
         config: Node::from_expr(file, source, pair, resolver)?,
         processed: false,
+        valid: true,
     })
 }
 

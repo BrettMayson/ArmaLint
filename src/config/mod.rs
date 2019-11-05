@@ -4,6 +4,9 @@ pub use parser::{parse, parse_with_resolver, Node, Statement, AST};
 mod preprocess;
 pub use preprocess::PreProcessor;
 
+mod report;
+pub use report::Report;
+
 pub mod render;
 pub use render::{RenderOptions, Renderer};
 

@@ -1,15 +1,17 @@
 use std::collections::HashMap;
 
-use super::{Node, Statement, AST};
+use super::{Node, Statement, AST, Report};
 use crate::ArmaLintError;
 
 type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 
+// TODO this should be private and constructed internally
 #[derive(Default)]
 pub struct PreProcessor {
     defines: HashMap<String, Node>,
     macros: HashMap<String, (Vec<String>, Node)>,
     valid: bool,
+    report: Report,
 }
 impl PreProcessor {
     pub fn new() -> Self {
@@ -17,10 +19,11 @@ impl PreProcessor {
             defines: HashMap::new(),
             macros: HashMap::new(),
             valid: true,
+            report: Report::new(),
         }
     }
 
-    pub fn process(&mut self, ast: AST) -> Result<AST, ArmaLintError> {
+    pub fn process(&mut self, ast: AST) -> Result<(AST, Report), ArmaLintError> {
         let mut ast = ast.clone();
         let config = match ast.config.statement {
             Statement::Config(c) => c,
@@ -28,7 +31,8 @@ impl PreProcessor {
         };
         ast.config.statement = Statement::Config(self.process_nodes(config, None)?);
         ast.processed = true;
-        Ok(ast)
+        ast.valid = self.valid;
+        Ok((ast, self.report.clone()))
     }
 
     pub fn process_nodes(&mut self, nodes: Vec<Node>, root_node: Option<Node>) -> ResultNodeVec {
@@ -160,6 +164,7 @@ impl PreProcessor {
                         format!("Call to undefined macro `{}`", ident),
                         Box::new(node.statement.clone()),
                     );
+                    self.report.errors.push(node.clone());
                     self.valid = false;
                 }
             }
@@ -250,6 +255,7 @@ impl PreProcessor {
                         format!("Attempt to undefine an undefined identifier `{}`", ident),
                         Box::new(node.statement.clone()),
                     );
+                    self.report.warnings.push(node.clone());
                     self.valid = false;
                 }
             }
