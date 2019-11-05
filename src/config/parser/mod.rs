@@ -34,8 +34,7 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         return Err(ArmaLintError::NotRoot);
     }
     let clean = source.replace("\r", "");
-    let pair = ConfigParser::parse(Rule::config, &clean)
-        .unwrap()
+    let pair = ConfigParser::parse(Rule::config, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     Ok(AST {
@@ -62,8 +61,7 @@ where
         return Err(ArmaLintError::NotRoot);
     }
     let clean = source.replace("\r", "");
-    let pair = ConfigParser::parse(Rule::config, &clean)
-        .unwrap()
+    let pair = ConfigParser::parse(Rule::config, &clean)?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     Ok(AST {

@@ -24,17 +24,6 @@ fn get_ident(stmt: Statement) -> Result<String, crate::ArmaLintError> {
 // Tests
 
 #[test]
-fn basic_class() {
-    let content = r###"class something {
-    data = "this is data";
-    numbers[] = {1, 2, {3, 4}, 5};
-    digit = 149;
-    dec = 12.42;
-};"###;
-    parse("basic.cpp", content).unwrap();
-}
-
-#[test]
 fn basic_statement_ast() {
     let content = r###"something = true;"###;
     let ast = parse("basic.cpp", content).unwrap();

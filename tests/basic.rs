@@ -26,7 +26,7 @@ fn parse() {
             Node {
                 file: FILENAME.to_string(),
                 start: (2, 1),
-                end: (7, 2),
+                end: (8, 2),
                 statement: Statement::Class {
                     ident: Box::new(Node {
                         file: FILENAME.to_string(),
@@ -175,6 +175,26 @@ fn parse() {
                                     start: (6, 18),
                                     end: (6, 21),
                                     statement: Statement::Integer(123)
+                                }),
+                                expand: false
+                            }
+                        },
+                        Node {
+                            file: FILENAME.to_string(),
+                            start: (7, 5),
+                            end: (7, 21),
+                            statement: Statement::Property {
+                                ident: Box::new(Node {
+                                    file: FILENAME.to_string(),
+                                    start: (7, 5),
+                                    end: (7, 14),
+                                    statement: Statement::Ident(String::from("someFloat"))
+                                }),
+                                value: Box::new(Node {
+                                    file: FILENAME.to_string(),
+                                    start: (7, 17),
+                                    end: (7, 21),
+                                    statement: Statement::Float(3.14)
                                 }),
                                 expand: false
                             }
@@ -209,7 +229,7 @@ fn preprocess() {
             Node {
                 file: FILENAME.to_string(),
                 start: (2, 1),
-                end: (7, 2),
+                end: (8, 2),
                 statement: Statement::Class {
                     ident: Box::new(Node {
                         file: FILENAME.to_string(),
@@ -358,6 +378,26 @@ fn preprocess() {
                                     start: (6, 18),
                                     end: (6, 21),
                                     statement: Statement::Integer(123)
+                                }),
+                                expand: false
+                            }
+                        },
+                        Node {
+                            file: FILENAME.to_string(),
+                            start: (7, 5),
+                            end: (7, 21),
+                            statement: Statement::Property {
+                                ident: Box::new(Node {
+                                    file: FILENAME.to_string(),
+                                    start: (7, 5),
+                                    end: (7, 14),
+                                    statement: Statement::Ident(String::from("someFloat"))
+                                }),
+                                value: Box::new(Node {
+                                    file: FILENAME.to_string(),
+                                    start: (7, 17),
+                                    end: (7, 21),
+                                    statement: Statement::Float(3.14)
                                 }),
                                 expand: false
                             }

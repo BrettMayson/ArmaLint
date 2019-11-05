@@ -291,7 +291,18 @@ impl PreProcessor {
                 } else {
                     ident.to_string()
                 };
-                output.push(format!("\"{}\"", data));
+                output.push(format!("{}", data));
+            } else if token.contains("##") {
+                let token_parts = token.split("##");
+                let mut part_str = Vec::new();
+                for part in token_parts {
+                    part_str.push(if let Some(v) = self.defines.get(part) {
+                        super::get_ident(v.statement.clone())?
+                    } else {
+                        part.to_string()
+                    });
+                }
+                output.push(part_str.join(""));
             } else {
                 output.push(if let Some(v) = self.defines.get(token) {
                     super::get_ident(v.statement.clone())?

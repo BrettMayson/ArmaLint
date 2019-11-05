@@ -60,6 +60,7 @@ class TestClass: Test {
     deepArray[] = {{1, 2}, {3, 4}};
     someString = "This is some string";
     someNumber = 123;
+    someFloat = 3.14;
 };"##
         );
     }
@@ -79,6 +80,7 @@ class TestClass: Test
     deepArray[] = {{1, 2}, {3, 4}};
     someString = "This is some string";
     someNumber = 123;
+    someFloat = 3.14;
 };"##
                 .to_string()
         );
@@ -106,6 +108,7 @@ class TestClass: Test {
     deepArray[] = {{1, 2}, {3, 4}};
     someString = "This is some string";
     someNumber = 123;
+    someFloat = 3.14;
 };"##
                 .replace("    ", "\t")
         );
@@ -125,6 +128,7 @@ class TestClass: Test {
     deepArray[] = {{1, 2}, {3, 4}};
     someString = "This is some string";
     someNumber = 123;
+    someFloat = 3.14;
 };"##
                 .to_string()
         );

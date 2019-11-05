@@ -1,6 +1,6 @@
 file = { SOI ~ config ~ EOI }
 config = { items }
-items = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)* }
+items = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive)+ }
 
 prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
