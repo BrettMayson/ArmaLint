@@ -12,6 +12,7 @@ value = _{
     integer |
     string_wrapper |
     special |
+    macro_call |
     unquoted
 }
 

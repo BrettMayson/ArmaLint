@@ -300,7 +300,7 @@ fn preprocess() {
     let content = std::fs::read_to_string(FILE).unwrap();
     let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
-    let (processed, _) = preprocessor.process(ast).unwrap();
+    let processed = preprocessor.process(ast).unwrap();
     assert_eq!(
         processed.config.statement,
         Statement::Config(vec![
@@ -599,7 +599,7 @@ fn simplify() {
     let content = std::fs::read_to_string(FILE).unwrap();
     let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
-    let (processed, _) = preprocessor.process(ast).unwrap();
+    let processed = preprocessor.process(ast).unwrap();
     armalint::config::simplify::Config::from_ast(processed).unwrap();
 }
 
@@ -608,7 +608,7 @@ fn rapify() {
     let content = std::fs::read_to_string(FILE).unwrap();
     let ast = armalint::config::parse(FILENAME, &content).unwrap();
     let mut preprocessor = armalint::config::PreProcessor::new();
-    let (processed, _) = preprocessor.process(ast).unwrap();
+    let processed = preprocessor.process(ast).unwrap();
     let simple = armalint::config::simplify::Config::from_ast(processed).unwrap();
     let mut rapified = std::io::Cursor::new(Vec::new());
     simple.write_rapified(&mut rapified).unwrap();

@@ -21,9 +21,10 @@ impl Command for Lint {
                 f.read_to_string(&mut content)?;
                 let ast = crate::config::parse(args.value_of("file").unwrap(), &content)?;
                 let mut preprocessor = crate::config::PreProcessor::new();
-                let (processed, report) = preprocessor.process(ast)?;
+                let processed = preprocessor.process(ast)?;
+                let report = processed.report.clone().unwrap();
                 println!("Syntax: Valid");
-                println!("PreProcessor: {}", if processed.valid { "Valid" } else { "Invalid" });
+                println!("PreProcessor: {}", if processed.valid() { "Valid" } else { "Invalid" });
                 for warning in report.warnings {
                     node_warning!(processed.files, warning);
                 }

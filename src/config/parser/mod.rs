@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use super::Report;
 use crate::ArmaLintError;
 
 mod node;
@@ -20,7 +21,17 @@ pub struct AST {
     pub config: Node,
     pub files: HashMap<String, (Option<(String, usize)>, String)>,
     pub processed: bool,
-    pub valid: bool,
+    pub report: Option<Report>,
+}
+
+impl AST {
+    pub fn valid(&self) -> bool {
+        if let Some(report) = &self.report {
+            report.errors.is_empty()
+        } else {
+            true
+        }
+    }
 }
 
 /// Converts a raw string into an AST
@@ -45,7 +56,7 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         config,
         files,
         processed: false,
-        valid: true,
+        report: None,
     })
 }
 
@@ -78,7 +89,7 @@ where
         config,
         files,
         processed: false,
-        valid: true,
+        report: None,
     })
 }
 

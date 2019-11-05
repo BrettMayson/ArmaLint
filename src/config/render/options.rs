@@ -44,7 +44,7 @@ fn test_brackets() {
     let content = std::fs::read_to_string("tests/basic.cpp").unwrap();
     let ast = crate::config::parse("basic.cpp", &content).unwrap();
     let mut preprocessor = crate::config::PreProcessor::new();
-    let (processed, _) = preprocessor.process(ast).unwrap();
+    let processed = preprocessor.process(ast).unwrap();
     // Test Linux Brackets
     {
         let linux_options = RenderOptions {
@@ -92,7 +92,7 @@ fn test_indents() {
     let content = std::fs::read_to_string("tests/basic.cpp").unwrap();
     let ast = crate::config::parse("basic.cpp", &content).unwrap();
     let mut preprocessor = crate::config::PreProcessor::new();
-    let (processed, _) = preprocessor.process(ast).unwrap();
+    let processed = preprocessor.process(ast).unwrap();
     // Test Tabs
     {
         let linux_options = RenderOptions {

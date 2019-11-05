@@ -10,7 +10,6 @@ type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 pub struct PreProcessor {
     defines: HashMap<String, Node>,
     macros: HashMap<String, (Vec<String>, Node)>,
-    valid: bool,
     report: Report,
 }
 impl PreProcessor {
@@ -18,12 +17,11 @@ impl PreProcessor {
         Self {
             defines: HashMap::new(),
             macros: HashMap::new(),
-            valid: true,
             report: Report::new(),
         }
     }
 
-    pub fn process(&mut self, ast: AST) -> Result<(AST, Report), ArmaLintError> {
+    pub fn process(&mut self, ast: AST) -> Result<AST, ArmaLintError> {
         let mut ast = ast.clone();
         let config = match ast.config.statement {
             Statement::Config(c) => c,
@@ -31,8 +29,8 @@ impl PreProcessor {
         };
         ast.config.statement = Statement::Config(self.process_nodes(config, None)?);
         ast.processed = true;
-        ast.valid = self.valid;
-        Ok((ast, self.report.clone()))
+        ast.report = Some(self.report.clone());
+        Ok(ast)
     }
 
     pub fn process_nodes(&mut self, nodes: Vec<Node>, root_node: Option<Node>) -> ResultNodeVec {
@@ -171,7 +169,7 @@ impl PreProcessor {
                             ),
                             Box::new(node.statement.clone()),
                         );
-                        self.valid = false;
+                        self.report.errors.push(node.clone());
                     } else {
                         let old_defines = self.defines.clone();
                         for (i, val) in args.iter().enumerate() {
@@ -203,7 +201,6 @@ impl PreProcessor {
                         Box::new(node.statement.clone()),
                     );
                     self.report.errors.push(node.clone());
-                    self.valid = false;
                 }
             }
             Statement::MacroCallArg(inner_args) => {

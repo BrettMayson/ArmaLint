@@ -90,6 +90,20 @@ macro_rules! get_message {
                     crate::HelpType::Note,
                 )
             }
+            crate::config::Statement::InvalidCall(ref v, ref c) => {
+                let ident = match &**c {
+                    crate::config::Statement::MacroCall { ident, .. } => ident.clone(),
+                    _ => panic!("Invalid call: {:#?}", c),
+                };
+                (
+                    v.clone(),
+                    ($n.start.1).0,
+                    Some(($n.start.1).1),
+                    ident.len(),
+                    None,
+                    crate::HelpType::Help,
+                )
+            }
             _ => panic!("No way to warn for {:?}", $n),
         }
     };
