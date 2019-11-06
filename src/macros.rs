@@ -1,11 +1,9 @@
-#[macro_export]
 macro_rules! repeat {
     ($s:expr, $n:expr) => {{
         std::iter::repeat($s).take($n).collect::<String>()
     }};
 }
 
-#[macro_export]
 macro_rules! iformat {
     ($e:expr, $($p:ident),*) => {
         format!($e, $($p = $p,)*);
@@ -13,8 +11,6 @@ macro_rules! iformat {
 }
 
 // Messages
-
-#[macro_export]
 macro_rules! get_message {
     ($l:expr, $n:ident) => {
         match $n.statement {
@@ -109,7 +105,6 @@ macro_rules! get_message {
     };
 }
 
-#[macro_export]
 macro_rules! display_info {
     ($c:expr, $n:ident, $i:expr) => {
         let (_, help_line, help_start, help_len, help_message, help_type) = $i;
@@ -131,7 +126,7 @@ macro_rules! display_info {
             ($n.end.1).0 + offset,
             ($n.end.1).1
         );
-        println!("{}", crate::iformat!("  {arrow} {file} {range}", arrow, file, range));
+        println!("{}", iformat!("  {arrow} {file} {range}", arrow, file, range));
         println!("    {}", sep);
         for (line, content_line) in $c.get(&file).unwrap().1.lines().collect::<Vec<_>>().iter().enumerate() {
             let line = line + 1;
@@ -173,7 +168,6 @@ macro_rules! display_info {
     };
 }
 
-#[macro_export]
 macro_rules! node_warning {
     ($c:expr, $n:ident) => {
         use colored::Colorize;
@@ -188,7 +182,6 @@ macro_rules! node_warning {
     };
 }
 
-#[macro_export]
 macro_rules! node_error {
     ($c:expr, $n:ident) => {
         use colored::Colorize;
@@ -204,7 +197,6 @@ macro_rules! node_error {
 }
 
 // FS
-#[macro_export]
 macro_rules! create_dir {
     ($e:expr) => {
         std::fs::create_dir_all(&$e).map_err(|source| {
@@ -216,7 +208,6 @@ macro_rules! create_dir {
     };
 }
 
-#[macro_export]
 macro_rules! open_file {
     ($e:expr) => {
         std::fs::File::open(&$e).map_err(|source| {
@@ -228,7 +219,6 @@ macro_rules! open_file {
     };
 }
 
-#[macro_export]
 macro_rules! create_file {
     ($e:expr) => {
         std::fs::File::create(&$e).map_err(|source| {
@@ -240,7 +230,6 @@ macro_rules! create_file {
     };
 }
 
-#[macro_export]
 macro_rules! copy_file {
     ($s:expr, $d:expr) => {
         std::fs::copy(&$s, &$d).map_err(|source| {
@@ -252,7 +241,6 @@ macro_rules! copy_file {
     };
 }
 
-#[macro_export]
 macro_rules! rename_file {
     ($s:expr, $d:expr) => {
         std::fs::rename(&$s, &$d).map_err(|source| {
@@ -264,7 +252,6 @@ macro_rules! rename_file {
     };
 }
 
-#[macro_export]
 macro_rules! remove_file {
     ($s:expr) => {
         std::fs::remove_file(&$s).map_err(|source| {

@@ -107,7 +107,7 @@ impl From<pest::error::Error<Rule>> for ArmaLintError {
             pest::error::ErrorVariant::ParsingError { positives, negatives } => ArmaLintError::ParsingError {
                 positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
                 negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
-                position: err.line_col
+                position: err.line_col,
             },
             pest::error::ErrorVariant::CustomError { message } => {
                 panic!(message);

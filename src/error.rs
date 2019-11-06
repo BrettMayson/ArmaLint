@@ -13,7 +13,11 @@ impl<T, E: std::fmt::Debug + std::fmt::Display> PrintableError<T, E> for Result<
 
 #[derive(Debug)]
 pub enum ArmaLintError {
-    ParsingError { positives: Vec<String>, negatives: Vec<String>, position: pest::error::LineColLocation },
+    ParsingError {
+        positives: Vec<String>,
+        negatives: Vec<String>,
+        position: pest::error::LineColLocation,
+    },
     InvalidInput(String),
     InvalidProperty(String),
     NotProcessed,
@@ -33,7 +37,11 @@ impl std::fmt::Display for ArmaLintError {
             ArmaLintError::NotRoot => write!(f, "The root of the AST is required"),
             ArmaLintError::InvalidInput(ref err) => write!(f, "Invalid Input: {}", err),
             ArmaLintError::InvalidProperty(ref err) => write!(f, "Invalid Property: {}", err),
-            ArmaLintError::ParsingError {ref positives, ref position, .. } => write!(f, "Expected {:?} at {:?}", positives, position)
+            ArmaLintError::ParsingError {
+                ref positives,
+                ref position,
+                ..
+            } => write!(f, "Expected {:?} at {:?}", positives, position),
         }
     }
 }

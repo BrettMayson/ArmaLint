@@ -10,10 +10,10 @@ extern crate strum;
 extern crate strum_macros;
 
 #[macro_use]
-pub mod macros;
+mod macros;
 
 pub mod error;
-pub use error::{ArmaLintError, IOPathError};
+use error::{ArmaLintError, IOPathError};
 
 pub mod io;
 
@@ -27,7 +27,7 @@ pub enum HelpType {
 
 // Application
 pub mod commands;
-pub use commands::Command;
+use commands::Command;
 
 lazy_static::lazy_static! {
     pub static ref VERSION: &'static str = {

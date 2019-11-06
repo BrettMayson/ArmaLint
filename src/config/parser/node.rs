@@ -298,7 +298,7 @@ impl Node {
                     }
                 }
                 // Ignored
-                Rule::EOI => {Statement::Gone},
+                Rule::EOI => Statement::Gone,
                 Rule::file => unimplemented!(),
                 Rule::string_wrapper => unimplemented!(),
                 Rule::item => unimplemented!(),

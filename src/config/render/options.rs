@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Hash, PartialEq)]
 pub enum BracketStyle {
     /// Linux Kernel
     /// ```hpp
@@ -17,14 +17,14 @@ pub enum BracketStyle {
     Allman,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Hash, PartialEq)]
 pub enum IndentationType {
     Spaces(u8),
     Tab,
     None,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Hash, PartialEq)]
 pub struct RenderOptions {
     pub bracket_style: BracketStyle,
     pub indentation_type: IndentationType,

@@ -4,11 +4,12 @@ use crate::ArmaLintError;
 mod options;
 pub use options::{BracketStyle, IndentationType, RenderOptions};
 
+/// Renders processed AST or simplified configs
+#[derive(Clone, Copy, Hash)]
 pub struct Renderer {
     options: RenderOptions,
 }
 
-/// Renders processed AST or simplified configs
 impl Renderer {
     /// Create a new Renderer with the passed options
     pub fn new(options: RenderOptions) -> Self {
