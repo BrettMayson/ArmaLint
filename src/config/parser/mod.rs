@@ -52,14 +52,17 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let pair = pair.into_inner().next().unwrap();
-    let (config, included) = Node::from_expr(file, std::env::current_dir().unwrap(), source, pair, |filename, wd| {
-        match std::fs::read_to_string(filename) {
-            Ok(content) =>  {
-                Ok((content, wd.clone()))
-            }
-            Err(e) => Err(e.into())
-        }
-    })?;
+    let (config, included) =
+        Node::from_expr(
+            file,
+            std::env::current_dir().unwrap(),
+            source,
+            pair,
+            |filename, wd| match std::fs::read_to_string(filename) {
+                Ok(content) => Ok((content, wd.clone())),
+                Err(e) => Err(e.into()),
+            },
+        )?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
     });

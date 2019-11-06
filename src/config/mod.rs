@@ -2,7 +2,7 @@ mod parser;
 pub use parser::{parse, parse_with_resolver, Node, Statement, AST};
 
 mod preprocess;
-pub use preprocess::PreProcessor;
+pub use preprocess::process;
 
 mod report;
 pub use report::Report;
@@ -14,12 +14,14 @@ pub mod rapify;
 pub mod simplify;
 
 fn get_ident(stmt: Statement) -> Result<String, crate::ArmaLintError> {
+    println!("given {:?}", stmt);
     Ok(match stmt {
         Statement::Ident(val) => val,
         Statement::IdentArray(val) => val,
         Statement::InternalStr(val) => val,
         Statement::Processed(val, _) => get_ident(*val)?,
         Statement::Defined(val, _) => get_ident(val.statement)?,
+        Statement::MacroBody(val) => val,
         _ => panic!("get ident wasn't given ident: {:#?}", stmt),
     })
 }

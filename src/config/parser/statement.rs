@@ -51,19 +51,27 @@ pub enum Statement {
         positive: Vec<Node>,
         negative: Option<Vec<Node>>,
     },
+    IfNDef {
+        ident: String,
+        positive: Vec<Node>,
+        negative: Option<Vec<Node>>,
+    },
 
     // Internal
     Processed(Box<Statement>, Box<Statement>),
     InternalStr(String),
+    Quoted(Box<Statement>),
     Undefined(String, Box<Statement>),
-    FlagAsIdent(String, Box<Node>),
+    // Message, Original, Definition
+    FlagAsIdent(String, Box<Statement>, Box<Node>),
     // Definition, Original
     Defined(Box<Node>, Box<Node>),
-    InvalidCall(String, Box<Statement>),
+    // Message, Original, Definition
+    InvalidCall(String, Box<Statement>, Box<Node>),
     Inserted(Vec<Node>),
     Gone,
 
     // Warnings & Errors
     NonUppercaseDefine(Box<Statement>),
-    Redefine(String, Box<Statement>, Box<Option<Node>>),
+    Redefine(String, Box<Statement>, Option<Box<Node>>),
 }

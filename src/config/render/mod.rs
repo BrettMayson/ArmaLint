@@ -61,6 +61,7 @@ impl Renderer {
             Statement::Float(val) => output.push_str(&val.to_string()),
             Statement::Char(val) => output.push(val),
             Statement::InternalStr(val) => output.push_str(&val.to_string()),
+            Statement::Quoted(val) => output.push_str(&format!("\"{}\"", &self.render_statement(*val, indent)?)),
             Statement::Class { ident, extends, props } => {
                 output.push_str(&self.indent(indent));
                 output.push_str(&format!("class {}", self.render_node(*ident, indent)?));
@@ -101,16 +102,18 @@ impl Renderer {
             Statement::FILE => panic!("A file marker was not processed out, this should be reported as a bug"),
             Statement::LINE => panic!("A line marker was not processed out, this should be reported as a bug"),
             Statement::IfDef { .. } => panic!("An IfDef marker was not processed out, this should be reported as a bug"),
-            Statement::MacroBody(_) => panic!("A MacroBody marker was not processed out, this should be reported as a bug"),
+            Statement::IfNDef { .. } => panic!("An IfNDef marker was not processed out, this should be reported as a bug"),
+            // Statement::MacroBody(_) => panic!("A MacroBody marker was not processed out, this should be reported as a bug"),
+            Statement::MacroBody(_) => {}
             Statement::MacroCallArg(_) => {
                 panic!("A MacroCallArg marker was not processed out, this should be reported as a bug")
             }
             // Ignored
             Statement::Define { .. } => {}
             Statement::DefineMacro { .. } => {}
-            Statement::FlagAsIdent(_, _) => {}
+            Statement::FlagAsIdent(_, _, _) => {}
             Statement::Gone => {}
-            Statement::InvalidCall(_, _) => {}
+            Statement::InvalidCall(_, _, _) => {}
             Statement::MacroCall { .. } => {}
             Statement::Undefine(_) => {}
             Statement::Undefined(_, _) => {}

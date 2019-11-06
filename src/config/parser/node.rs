@@ -154,7 +154,7 @@ impl Node {
                 Rule::string => Statement::Str(String::from(pair.as_str())),
                 Rule::ident => Statement::Ident(String::from(pair.as_str())),
                 Rule::identarray => Statement::IdentArray(String::from(pair.into_inner().next().unwrap().as_str())),
-                Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
+                // Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
                 Rule::unquoted => Statement::Unquoted(
                     pair.into_inner()
                         .map(|x| {
@@ -179,7 +179,9 @@ impl Node {
                     let filename = pair.into_inner().next().unwrap().as_str();
                     let content = &resolver(filename, &wd)?;
                     included.push((filename.to_string(), None, content.0.to_string()));
-                    super::parse_with_resolver(filename, content.1.clone(), &content.0, resolver)?.config.statement
+                    super::parse_with_resolver(filename, content.1.clone(), &content.0, resolver)?
+                        .config
+                        .statement
                 }
                 Rule::define => {
                     let mut parts = pair.into_inner();
@@ -260,12 +262,52 @@ impl Node {
                         })
                         .collect::<ResultNodeVec>()?,
                 ),
-                Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
+                // Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
                 Rule::define_macro_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
+                Rule::define_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
                 Rule::undef => Statement::Undefine(pair.into_inner().next().unwrap().as_str().to_string()),
                 Rule::ifdef => {
                     let mut parts = pair.into_inner();
                     Statement::IfDef {
+                        ident: String::from(parts.next().unwrap().as_str()),
+                        positive: parts
+                            .next()
+                            .unwrap()
+                            .into_inner()
+                            .map(|x| {
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
+                            .collect::<ResultNodeVec>()?,
+                        negative: {
+                            if let Some(part) = parts.next() {
+                                Some(
+                                    part.into_inner()
+                                        .map(|x| {
+                                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                            if let Ok((n, i)) = r {
+                                                i.iter().for_each(|x| included.push(x.clone()));
+                                                Ok(n)
+                                            } else {
+                                                Err(r.err().unwrap())
+                                            }
+                                        })
+                                        .collect::<ResultNodeVec>()?,
+                                )
+                            } else {
+                                None
+                            }
+                        },
+                    }
+                }
+                Rule::ifndef => {
+                    let mut parts = pair.into_inner();
+                    Statement::IfNDef {
                         ident: String::from(parts.next().unwrap().as_str()),
                         positive: parts
                             .next()
