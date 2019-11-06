@@ -17,7 +17,7 @@ impl Renderer {
     }
 
     /// Render the supplied AST
-    pub fn render(&self, ast: AST) -> Result<String, ArmaLintError> {
+    pub fn render(self, ast: AST) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         let config = match ast.config.statement {
             Statement::Config(c) => c,
@@ -27,7 +27,7 @@ impl Renderer {
         Ok(output.trim().to_string())
     }
 
-    pub fn render_nodes(&self, nodes: Vec<Node>, indent: u8) -> Result<String, ArmaLintError> {
+    pub fn render_nodes(self, nodes: Vec<Node>, indent: u8) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         for node in nodes {
             output.push_str(&self.render_node(node, indent)?);
@@ -35,13 +35,13 @@ impl Renderer {
         Ok(output)
     }
 
-    pub fn render_node(&self, node: Node, indent: u8) -> Result<String, ArmaLintError> {
+    pub fn render_node(self, node: Node, indent: u8) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         output.push_str(&self.render_statement(node.statement, indent)?);
         Ok(output)
     }
 
-    pub fn render_statement(&self, statement: Statement, indent: u8) -> Result<String, ArmaLintError> {
+    pub fn render_statement(self, statement: Statement, indent: u8) -> Result<String, ArmaLintError> {
         let mut output = String::new();
         match statement {
             Statement::Property { ident, value, expand } => {
@@ -108,11 +108,12 @@ impl Renderer {
             // Ignored
             Statement::Define { .. } => {}
             Statement::DefineMacro { .. } => {}
+            Statement::FlagAsIdent(_, _) => {}
+            Statement::Gone => {}
+            Statement::InvalidCall(_, _) => {}
+            Statement::MacroCall { .. } => {}
             Statement::Undefine(_) => {}
             Statement::Undefined(_, _) => {}
-            Statement::MacroCall { .. } => {}
-            Statement::InvalidCall(_, _) => {}
-            Statement::Gone => {}
             // Warnings & Errors
             Statement::NonUppercaseDefine(_) => {}
             Statement::Redefine(_, _, _) => {}
@@ -120,7 +121,7 @@ impl Renderer {
         Ok(output)
     }
 
-    fn indent(&self, indent: u8) -> String {
+    fn indent(self, indent: u8) -> String {
         repeat!(
             match self.options.indentation_type {
                 IndentationType::Tab => String::from("\t"),

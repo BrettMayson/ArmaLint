@@ -32,7 +32,7 @@ pub enum Statement {
     // Directives
     Define {
         ident: String,
-        value: Box<Node>,
+        value: Option<Box<Node>>,
     },
     DefineMacro {
         ident: String,
@@ -56,6 +56,7 @@ pub enum Statement {
     Processed(Box<Statement>, Box<Statement>),
     InternalStr(String),
     Undefined(String, Box<Statement>),
+    FlagAsIdent(String, Box<Node>),
     // Definition, Original
     Defined(Box<Node>, Box<Node>),
     InvalidCall(String, Box<Statement>),
@@ -64,5 +65,5 @@ pub enum Statement {
 
     // Warnings & Errors
     NonUppercaseDefine(Box<Statement>),
-    Redefine(String, Box<Statement>, Box<Node>),
+    Redefine(String, Box<Statement>, Box<Option<Node>>),
 }

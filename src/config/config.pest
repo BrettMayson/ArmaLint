@@ -1,6 +1,6 @@
 file = { SOI ~ config ~ EOI }
 config = { item+ }
-item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) ) ~ ";") | directive) }
+item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) | ident ) ~ ";") | directive) }
 
 prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
@@ -43,7 +43,7 @@ macro_arg_char = { !(")" | ",") ~ ANY }
 
 // Directives
 
-directive = _{ include | define | define_macro | undef | ifdef }
+directive = _{ include | define | define_macro | define_flag | undef | ifdef }
 
 include = { "#include" ~ string_wrapper | "#include" ~ "<" ~ include_file ~ ">" }
 include_file = @{ ( (!">" ~ ANY) )* }
@@ -51,13 +51,15 @@ include_file = @{ ( (!">" ~ ANY) )* }
 define = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_whitespace ~ value }
 define_whitespace = _{ " " }
 
+define_flag = ${ "#define" ~ WHITESPACE+ ~ ident ~ "\n" }
+
 define_macro = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_macro_args ~ define_whitespace+ ~ define_macro_body }
 define_macro_args = !{"(" ~ ident ~ ("," ~ ident)* ~ ")" }
 define_macro_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ ~ "\n" }
 
 undef = ${ "#undef" ~ WHITESPACE+ ~ ident }
-ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n#else\n" ~ conditional_block)? ~ "\n#endif" }
-conditional_block = !{ item+ }
+ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n"? ~ "#else\n" ~ conditional_block)? ~ "\n"? ~ "#endif" }
+conditional_block = !{ (WHITESPACE* ~ item)+ }
 
 COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 WHITESPACE = _{ " " | "\t" | "\r" | (!"\\" ~ "\n") }

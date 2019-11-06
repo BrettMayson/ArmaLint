@@ -176,8 +176,7 @@ impl Node {
                     let filename = pair.into_inner().next().unwrap().as_str();
                     let content = &resolver(filename)?;
                     included.push((filename.to_string(), None, content.to_string()));
-                    super::parse_with_resolver(filename, content, resolver)
-                        .unwrap()
+                    super::parse_with_resolver(filename, content, resolver)?
                         .config
                         .statement
                 }
@@ -185,11 +184,17 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Define {
                         ident: String::from(parts.next().unwrap().as_str()),
-                        value: Box::new({
+                        value: Some(Box::new({
                             let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
-                        }),
+                        })),
+                    }
+                }
+                Rule::define_flag => {
+                    Statement::Define {
+                        ident: String::from(pair.into_inner().next().unwrap().as_str()),
+                        value: None,
                     }
                 }
                 Rule::define_macro => {

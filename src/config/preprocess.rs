@@ -8,7 +8,7 @@ type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 // TODO this should be private and constructed internally
 #[derive(Default)]
 pub struct PreProcessor {
-    defines: HashMap<String, Node>,
+    defines: HashMap<String, Option<Node>>,
     macros: HashMap<String, (Vec<String>, Node)>,
     report: Report,
 }
@@ -89,12 +89,20 @@ impl PreProcessor {
             }
             Statement::Ident(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    if let Some(d) = s {
+                        node.statement = Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()));
+                    } else {
+                        node.statement = Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", val), Box::new(node_clone.clone()))
+                    }
                 }
             }
             Statement::IdentArray(val) => {
                 if let Some(s) = self.defines.get(val) {
-                    node.statement = Statement::Defined(Box::new(s.clone()), Box::new(node_clone.clone()));
+                    if let Some(d) = s {
+                        node.statement = Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()));
+                    } else {
+                        node.statement = Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", val), Box::new(node_clone.clone()))
+                    }
                 }
             }
             Statement::ClassDef(ident) => {
@@ -121,12 +129,16 @@ impl PreProcessor {
                     warn_node.statement = Statement::Redefine(
                         format!("Redefining `{}`", ident),
                         Box::new(warn_node.statement.clone()),
-                        Box::new(old.1),
+                        Box::new(Some(old.1)),
                     );
                     self.report.warnings.push(warn_node.clone());
                 };
-                let data = self.process_node(*value.clone(), macro_root.clone())?;
-                self.defines.insert(ident.to_string(), data);
+                if let Some(val) = value {
+                    let data = self.process_node(*val.clone(), macro_root.clone())?;
+                    self.defines.insert(ident.to_string(), Some(data));
+                } else {
+                    self.defines.insert(ident.to_string(), None);
+                }
                 if ident.to_uppercase() != *ident {
                     warn_node.statement = Statement::NonUppercaseDefine(Box::new(node.statement.clone()));
                     self.report.warnings.push(warn_node.clone());
@@ -146,7 +158,7 @@ impl PreProcessor {
                     warn_node.statement = Statement::Redefine(
                         format!("Redefining `{}`", ident),
                         Box::new(warn_node.statement.clone()),
-                        Box::new(old.1),
+                        Box::new(Some(old.1)),
                     );
                     self.report.warnings.push(warn_node.clone());
                 };
@@ -181,7 +193,7 @@ impl PreProcessor {
                                     Some(node_clone.clone())
                                 },
                             )?;
-                            self.defines.insert(mac_args.get(i).unwrap().to_string(), macro_body);
+                            self.defines.insert(mac_args.get(i).unwrap().to_string(), Some(macro_body));
                         }
                         node.statement = self
                             .process_node(
@@ -236,7 +248,11 @@ impl PreProcessor {
                 }
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        if let Some(d) = val {
+                            Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()))
+                        } else {
+                            Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", output), Box::new(node_clone.clone()))
+                        }
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
                     }),
@@ -277,7 +293,11 @@ impl PreProcessor {
 
                 node.statement = Statement::Processed(
                     Box::new(if let Some(val) = self.defines.get(&output) {
-                        Statement::Defined(Box::new(val.clone()), Box::new(node_clone.clone()))
+                        if let Some(d) = val {
+                            Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()))
+                        } else {
+                            Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", output), Box::new(node_clone.clone()))
+                        }
                     } else {
                         self.report.warnings.push(node_clone.clone());
                         Statement::InternalStr(self.tokens(output)?)
@@ -309,11 +329,12 @@ impl PreProcessor {
             }
             // Ignored
             Statement::Char(_) => {}
+            Statement::Defined(_, _) => {}
+            Statement::FlagAsIdent(_, _) => {}
             Statement::Float(_) => {}
             Statement::Gone => {}
             Statement::Inserted(_) => {}
             Statement::InternalStr(_) => {}
-            Statement::Defined(_, _) => {}
             Statement::InvalidCall(_, _) => {}
             Statement::Processed(_, _) => {}
             Statement::Undefined(_, _) => {}
@@ -331,7 +352,11 @@ impl PreProcessor {
             if token.starts_with('#') {
                 let ident = remove_first(token).unwrap();
                 let data = if let Some(v) = self.defines.get(ident) {
-                    super::get_ident(v.statement.clone())?
+                    if let Some(d) = v {
+                        super::get_ident(d.statement.clone())?
+                    } else {
+                        ident.to_string()
+                    }
                 } else {
                     ident.to_string()
                 };
@@ -341,7 +366,11 @@ impl PreProcessor {
                 let mut part_str = Vec::new();
                 for part in token_parts {
                     part_str.push(if let Some(v) = self.defines.get(part) {
-                        super::get_ident(v.statement.clone())?
+                        if let Some(d) = v {
+                            super::get_ident(d.statement.clone())?
+                        } else {
+                            part.to_string()
+                        }
                     } else {
                         part.to_string()
                     });
@@ -349,7 +378,11 @@ impl PreProcessor {
                 output.push(part_str.join(""));
             } else {
                 output.push(if let Some(v) = self.defines.get(token) {
-                    super::get_ident(v.statement.clone())?
+                    if let Some(d) = v {
+                        super::get_ident(d.statement.clone())?
+                    } else {
+                        token.to_string()
+                    }
                 } else {
                     token.to_string()
                 });

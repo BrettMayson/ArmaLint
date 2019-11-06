@@ -28,6 +28,15 @@ pub enum ArmaLintError {
     PATH(IOPathError),
 }
 
+impl ArmaLintError {
+    pub fn warn(&self) {
+        warn!(self);
+    }
+    pub fn error(&self) {
+        error!(self);
+    }
+}
+
 impl std::fmt::Display for ArmaLintError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
