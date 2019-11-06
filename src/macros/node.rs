@@ -62,20 +62,18 @@ macro_rules! get_message {
                     ($n.start.1).0,
                     Some(($n.start.1).1 + 8),
                     ident.len(),
-                    Some(
-                        if let Some(n) = &**o {
-                            format!(
-                                "old value was `{}`",
-                                match &n.statement {
-                                    crate::config::Statement::MacroBody(v) => v.clone(),
-                                    crate::config::Statement::Str(v) => v.clone(),
-                                    _ => format!("{:?}", n.statement),
-                                }
-                            )
-                        } else {
-                            "was previously a flag".to_string()
-                        }
-                    ),
+                    Some(if let Some(n) = &**o {
+                        format!(
+                            "old value was `{}`",
+                            match &n.statement {
+                                crate::config::Statement::MacroBody(v) => v.clone(),
+                                crate::config::Statement::Str(v) => v.clone(),
+                                _ => format!("{:?}", n.statement),
+                            }
+                        )
+                    } else {
+                        "was previously a flag".to_string()
+                    }),
                     crate::HelpType::Note,
                 )
             }

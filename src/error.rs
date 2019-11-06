@@ -26,6 +26,7 @@ pub enum ArmaLintError {
     // Wrappers
     IO(std::io::Error),
     PATH(IOPathError),
+    GENERIC(String),
 }
 
 impl ArmaLintError {
@@ -40,6 +41,7 @@ impl ArmaLintError {
 impl std::fmt::Display for ArmaLintError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
+            ArmaLintError::GENERIC(ref err) => write!(f, "{}", err),
             ArmaLintError::IO(ref err) => write!(f, "IO error: {}", err),
             ArmaLintError::PATH(ref err) => write!(f, "IO error {}: {}", err.path.display(), err.source),
             ArmaLintError::NotProcessed => write!(f, "Attempt to perform action on non-processed AST"),

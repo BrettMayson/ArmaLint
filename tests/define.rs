@@ -18,13 +18,13 @@ fn parse() {
                 line: "#define username \"Brett\"".to_string(),
                 statement: Statement::Define {
                     ident: "username".to_string(),
-                    value: Box::new(Node {
+                    value: Some(Box::new(Node {
                         file: "define.cpp".to_string(),
                         start: (18, (1, 19)),
                         end: (23, (1, 24)),
                         line: "Brett".to_string(),
                         statement: Statement::Str("Brett".to_string())
-                    })
+                    }))
                 }
             },
             Node {
@@ -143,13 +143,13 @@ fn preprocess() {
                 line: "#define username \"Brett\"".to_string(),
                 statement: Statement::Define {
                     ident: "username".to_string(),
-                    value: Box::new(Node {
+                    value: Some(Box::new(Node {
                         file: "define.cpp".to_string(),
                         start: (18, (1, 19)),
                         end: (23, (1, 24)),
                         line: "Brett".to_string(),
                         statement: Statement::Str("Brett".to_string())
-                    })
+                    }))
                 }
             },
             Node {

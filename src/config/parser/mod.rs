@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use super::Report;
 use crate::ArmaLintError;
@@ -51,7 +52,14 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let pair = pair.into_inner().next().unwrap();
-    let (config, included) = Node::from_expr(file, source, pair, |filename| std::fs::read_to_string(filename))?;
+    let (config, included) = Node::from_expr(file, std::env::current_dir().unwrap(), source, pair, |filename, wd| {
+        match std::fs::read_to_string(filename) {
+            Ok(content) =>  {
+                Ok((content, wd.clone()))
+            }
+            Err(e) => Err(e.into())
+        }
+    })?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
     });
@@ -69,13 +77,18 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
 /// ```
 /// let content = "#include <myfile.hpp>";
 ///
-/// armalint::config::parse_with_resolver("config.cpp", content, |filename| {
-///     std::fs::read_to_string(filename)
+/// armalint::config::parse_with_resolver("config.cpp", std::env::current_dir().unwrap(), content, |filename, wd| {
+///     match std::fs::read_to_string(filename) {
+///         Ok(content) =>  {
+///             Ok((content, wd.clone()))
+///         }
+///         Err(e) => Err(e.into())
+///     }
 /// });
 /// ```
-pub fn parse_with_resolver<F>(file: &str, source: &str, resolver: F) -> Result<AST, ArmaLintError>
+pub fn parse_with_resolver<F>(file: &str, wd: PathBuf, source: &str, resolver: F) -> Result<AST, ArmaLintError>
 where
-    F: Fn(&str) -> Result<String, std::io::Error> + Copy,
+    F: Fn(&str, &PathBuf) -> Result<(String, PathBuf), ArmaLintError> + Copy,
 {
     if source.starts_with("#s") {
         return Err(ArmaLintError::NotRoot);
@@ -87,7 +100,7 @@ where
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let pair = pair.into_inner().next().unwrap();
-    let (config, included) = Node::from_expr(file, source, pair, resolver)?;
+    let (config, included) = Node::from_expr(file, wd, source, pair, resolver)?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
     });

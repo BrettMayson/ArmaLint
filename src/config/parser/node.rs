@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::{Rule, Statement};
 use crate::ArmaLintError;
 
@@ -15,12 +17,13 @@ type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 impl Node {
     pub fn from_expr<F>(
         file: &str,
+        wd: PathBuf,
         source: &str,
         pair: pest::iterators::Pair<Rule>,
         resolver: F,
     ) -> Result<(Node, Vec<(String, Option<(String, usize)>, String)>), ArmaLintError>
     where
-        F: Fn(&str) -> Result<String, std::io::Error> + Copy,
+        F: Fn(&str, &PathBuf) -> Result<(String, PathBuf), ArmaLintError> + Copy,
     {
         let mut included: Vec<(String, Option<(String, usize)>, String)> = Vec::new();
         let node = Node {
@@ -32,7 +35,7 @@ impl Node {
                 Rule::config => Statement::Config(
                     pair.into_inner()
                         .map(|x| {
-                            let r = Node::from_expr(file, source, x, resolver);
+                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                             if let Ok((n, i)) = r {
                                 i.iter().for_each(|x| included.push(x.clone()));
                                 Ok(n)
@@ -46,14 +49,14 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Class {
                         ident: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
                         extends: None,
                         props: parts
                             .map(|x| {
-                                let r = Node::from_expr(file, source, x, resolver);
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                                 if let Ok((n, i)) = r {
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     Ok(n)
@@ -68,18 +71,18 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Class {
                         ident: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
                         extends: Some(Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         })),
                         props: parts
                             .map(|x| {
-                                let r = Node::from_expr(file, source, x, resolver);
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                                 if let Ok((n, i)) = r {
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     Ok(n)
@@ -91,12 +94,12 @@ impl Node {
                     }
                 }
                 Rule::classdef => Statement::ClassDef(Box::new({
-                    let (n, i) = Node::from_expr(file, source, pair.into_inner().next().unwrap(), resolver)?;
+                    let (n, i) = Node::from_expr(file, wd.clone(), source, pair.into_inner().next().unwrap(), resolver)?;
                     i.iter().for_each(|x| included.push(x.clone()));
                     n
                 })),
                 Rule::classdelete => Statement::ClassDelete(Box::new({
-                    let (n, i) = Node::from_expr(file, source, pair.into_inner().next().unwrap(), resolver)?;
+                    let (n, i) = Node::from_expr(file, wd.clone(), source, pair.into_inner().next().unwrap(), resolver)?;
                     i.iter().for_each(|x| included.push(x.clone()));
                     n
                 })),
@@ -104,12 +107,12 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Property {
                         ident: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
                         value: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
@@ -120,12 +123,12 @@ impl Node {
                     let mut parts = pair.into_inner();
                     Statement::Property {
                         ident: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
                         value: Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
@@ -136,7 +139,7 @@ impl Node {
                 Rule::array => Statement::Array(
                     pair.into_inner()
                         .map(|x| {
-                            let r = Node::from_expr(file, source, x, resolver);
+                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                             if let Ok((n, i)) = r {
                                 i.iter().for_each(|x| included.push(x.clone()));
                                 Ok(n)
@@ -155,7 +158,7 @@ impl Node {
                 Rule::unquoted => Statement::Unquoted(
                     pair.into_inner()
                         .map(|x| {
-                            let r = Node::from_expr(file, source, x, resolver);
+                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                             if let Ok((n, i)) = r {
                                 i.iter().for_each(|x| included.push(x.clone()));
                                 Ok(n)
@@ -174,29 +177,25 @@ impl Node {
                 // Directives
                 Rule::include => {
                     let filename = pair.into_inner().next().unwrap().as_str();
-                    let content = &resolver(filename)?;
-                    included.push((filename.to_string(), None, content.to_string()));
-                    super::parse_with_resolver(filename, content, resolver)?
-                        .config
-                        .statement
+                    let content = &resolver(filename, &wd)?;
+                    included.push((filename.to_string(), None, content.0.to_string()));
+                    super::parse_with_resolver(filename, content.1.clone(), &content.0, resolver)?.config.statement
                 }
                 Rule::define => {
                     let mut parts = pair.into_inner();
                     Statement::Define {
                         ident: String::from(parts.next().unwrap().as_str()),
                         value: Some(Box::new({
-                            let (n, i) = Node::from_expr(file, source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         })),
                     }
                 }
-                Rule::define_flag => {
-                    Statement::Define {
-                        ident: String::from(pair.into_inner().next().unwrap().as_str()),
-                        value: None,
-                    }
-                }
+                Rule::define_flag => Statement::Define {
+                    ident: String::from(pair.into_inner().next().unwrap().as_str()),
+                    value: None,
+                },
                 Rule::define_macro => {
                     let mut parts = pair.into_inner();
                     let ident = parts.next().unwrap().as_str();
@@ -208,6 +207,7 @@ impl Node {
                         value: {
                             if let Ok(stmt) = super::parse_with_resolver(
                                 &format!("MACRO:{}", ident),
+                                wd.clone(),
                                 &format!("{};", body.as_str().trim_end_matches('\n').replace("\\\n", "\n")),
                                 resolver,
                             ) {
@@ -219,7 +219,7 @@ impl Node {
                                 Box::new(stmt.config)
                             } else {
                                 Box::new({
-                                    let (n, i) = Node::from_expr(file, source, body.clone(), resolver)?;
+                                    let (n, i) = Node::from_expr(file, wd.clone(), source, body.clone(), resolver)?;
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     n
                                 })
@@ -236,7 +236,7 @@ impl Node {
                             .unwrap()
                             .into_inner()
                             .map(|x| {
-                                let r = Node::from_expr(file, source, x, resolver);
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                                 if let Ok((n, i)) = r {
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     Ok(n)
@@ -250,7 +250,7 @@ impl Node {
                 Rule::macro_call_arg => Statement::MacroCallArg(
                     pair.into_inner()
                         .map(|x| {
-                            let r = Node::from_expr(file, source, x, resolver);
+                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                             if let Ok((n, i)) = r {
                                 i.iter().for_each(|x| included.push(x.clone()));
                                 Ok(n)
@@ -272,7 +272,7 @@ impl Node {
                             .unwrap()
                             .into_inner()
                             .map(|x| {
-                                let r = Node::from_expr(file, source, x, resolver);
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                                 if let Ok((n, i)) = r {
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     Ok(n)
@@ -286,7 +286,7 @@ impl Node {
                                 Some(
                                     part.into_inner()
                                         .map(|x| {
-                                            let r = Node::from_expr(file, source, x, resolver);
+                                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                                             if let Ok((n, i)) = r {
                                                 i.iter().for_each(|x| included.push(x.clone()));
                                                 Ok(n)

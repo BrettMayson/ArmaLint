@@ -18,7 +18,7 @@ fn parse() {
                 line: "#define NAME Brett".to_string(),
                 statement: Statement::Define {
                     ident: "NAME".to_string(),
-                    value: Box::new(Node {
+                    value: Some(Box::new(Node {
                         file: "tokens.cpp".to_string(),
                         start: (13, (1, 14)),
                         end: (18, (1, 19)),
@@ -60,7 +60,7 @@ fn parse() {
                                 statement: Statement::Char('t')
                             }
                         ])
-                    })
+                    }))
                 }
             },
             Node {
@@ -299,7 +299,7 @@ fn preprocess() {
                 line: "#define NAME Brett".to_string(),
                 statement: Statement::Define {
                     ident: "NAME".to_string(),
-                    value: Box::new(Node {
+                    value: Some(Box::new(Node {
                         file: "tokens.cpp".to_string(),
                         start: (13, (1, 14)),
                         end: (18, (1, 19)),
@@ -341,7 +341,7 @@ fn preprocess() {
                                 statement: Statement::Char('t')
                             }
                         ])
-                    })
+                    }))
                 }
             },
             Node {

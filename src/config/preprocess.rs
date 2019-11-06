@@ -92,7 +92,10 @@ impl PreProcessor {
                     if let Some(d) = s {
                         node.statement = Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()));
                     } else {
-                        node.statement = Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", val), Box::new(node_clone.clone()))
+                        node.statement = Statement::FlagAsIdent(
+                            format!("Attempt to use flag `{}` as identifier", val),
+                            Box::new(node_clone.clone()),
+                        )
                     }
                 }
             }
@@ -101,7 +104,10 @@ impl PreProcessor {
                     if let Some(d) = s {
                         node.statement = Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()));
                     } else {
-                        node.statement = Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", val), Box::new(node_clone.clone()))
+                        node.statement = Statement::FlagAsIdent(
+                            format!("Attempt to use flag `{}` as identifier", val),
+                            Box::new(node_clone.clone()),
+                        )
                     }
                 }
             }
@@ -251,7 +257,10 @@ impl PreProcessor {
                         if let Some(d) = val {
                             Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()))
                         } else {
-                            Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", output), Box::new(node_clone.clone()))
+                            Statement::FlagAsIdent(
+                                format!("Attempt to use flag `{}` as identifier", output),
+                                Box::new(node_clone.clone()),
+                            )
                         }
                     } else {
                         Statement::InternalStr(self.tokens(output)?)
@@ -296,7 +305,10 @@ impl PreProcessor {
                         if let Some(d) = val {
                             Statement::Defined(Box::new(d.clone()), Box::new(node_clone.clone()))
                         } else {
-                            Statement::FlagAsIdent(format!("Attempt to use flag `{}` as identifier", output), Box::new(node_clone.clone()))
+                            Statement::FlagAsIdent(
+                                format!("Attempt to use flag `{}` as identifier", output),
+                                Box::new(node_clone.clone()),
+                            )
                         }
                     } else {
                         self.report.warnings.push(node_clone.clone());
