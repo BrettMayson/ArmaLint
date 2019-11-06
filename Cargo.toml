@@ -2,6 +2,9 @@
 name = "armalint"
 version = "0.1.1"
 authors = ["Brett <brett@bmandesigns.com>"]
+repository = "https://github.com/SynixeBrett/ArmaLint"
+description = "An Arma linting library"
+keywords = ["arma","sqf"]
 edition = "2018"
 build = "build.rs"
 
