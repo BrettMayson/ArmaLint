@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use super::{Rule, Statement};
+use super::super::{ResultNodeVec, Rule};
+use super::Statement;
 use crate::ArmaLintError;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,8 +12,6 @@ pub struct Node {
     pub line: String,
     pub statement: Statement,
 }
-
-type ResultNodeVec = Result<Vec<Node>, ArmaLintError>;
 
 impl Node {
     pub fn from_expr<F>(
@@ -155,8 +154,9 @@ impl Node {
                 Rule::ident => Statement::Ident(String::from(pair.as_str())),
                 Rule::identarray => Statement::IdentArray(String::from(pair.into_inner().next().unwrap().as_str())),
                 Rule::char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
-                Rule::unquoted => Statement::Unquoted(
-                    pair.into_inner()
+                Rule::unquoted => Statement::Unquoted({
+                    let nodes = pair
+                        .into_inner()
                         .map(|x| {
                             let r = Node::from_expr(file, wd.clone(), source, x, resolver);
                             if let Ok((n, i)) = r {
@@ -166,8 +166,43 @@ impl Node {
                                 Err(r.err().unwrap())
                             }
                         })
-                        .collect::<ResultNodeVec>()?,
-                ),
+                        .collect::<ResultNodeVec>()?;
+                    let mut text = String::new();
+                    let mut start: i32 = -1;
+                    let mut last_node = None;
+                    let mut ret_nodes = Vec::new();
+                    for n in nodes {
+                        if let Statement::Char(c) = n.statement {
+                            text.push(c);
+                            if start == -1 {
+                                start = (n.start.1).1 as i32;
+                            } else {
+                                start += 1;
+                            }
+                            last_node = Some(n);
+                        } else {
+                            if let Some(mut ln) = last_node {
+                                ret_nodes.push({
+                                    ln.statement = Statement::Ident(text.clone());
+                                    ln.line = text.clone();
+                                    (ln.start.1).1 = start as usize;
+                                    ln
+                                })
+                            }
+                            last_node = None;
+                            ret_nodes.push(n);
+                        }
+                    }
+                    if let Some(mut ln) = last_node {
+                        ret_nodes.push({
+                            ln.statement = Statement::Ident(text.clone());
+                            ln.line = text.clone();
+                            (ln.start.1).1 = start as usize;
+                            ln
+                        })
+                    }
+                    ret_nodes
+                }),
                 // Special
                 Rule::special => match pair.as_str() {
                     "__FILE__" => Statement::FILE,
@@ -179,7 +214,9 @@ impl Node {
                     let filename = pair.into_inner().next().unwrap().as_str();
                     let content = &resolver(filename, &wd)?;
                     included.push((filename.to_string(), None, content.0.to_string()));
-                    super::parse_with_resolver(filename, content.1.clone(), &content.0, resolver)?.config.statement
+                    super::super::parse_with_resolver(filename, content.1.clone(), &content.0, resolver)?
+                        .config
+                        .statement
                 }
                 Rule::define => {
                     let mut parts = pair.into_inner();
@@ -192,6 +229,7 @@ impl Node {
                         })),
                     }
                 }
+                Rule::define_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
                 Rule::define_flag => Statement::Define {
                     ident: String::from(pair.into_inner().next().unwrap().as_str()),
                     value: None,
@@ -205,7 +243,7 @@ impl Node {
                         ident: ident.to_string(),
                         args: args.into_inner().map(|x| String::from(x.as_str())).collect::<Vec<String>>(),
                         value: {
-                            if let Ok(stmt) = super::parse_with_resolver(
+                            if let Ok(stmt) = super::super::parse_with_resolver(
                                 &format!("MACRO:{}", ident),
                                 wd.clone(),
                                 &format!("{};", body.as_str().trim_end_matches('\n').replace("\\\n", "\n")),
@@ -260,12 +298,139 @@ impl Node {
                         })
                         .collect::<ResultNodeVec>()?,
                 ),
+                //Rule::macro_arg_unquoted => Statement::Ident(pair.as_str().to_string()),
                 Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
+                Rule::macro_arg_unquoted => Statement::Unquoted({
+                    let nodes = pair
+                        .into_inner()
+                        .map(|x| {
+                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                            if let Ok((n, i)) = r {
+                                i.iter().for_each(|x| included.push(x.clone()));
+                                Ok(n)
+                            } else {
+                                Err(r.err().unwrap())
+                            }
+                        })
+                        .collect::<ResultNodeVec>()?;
+                    let mut text = String::new();
+                    let mut start: i32 = -1;
+                    let mut last_node = None;
+                    let mut ret_nodes = Vec::new();
+                    for n in nodes {
+                        if let Statement::Char(c) = n.statement {
+                            text.push(c);
+                            if start == -1 {
+                                start = (n.start.1).1 as i32;
+                            } else {
+                                start += 1;
+                            }
+                            last_node = Some(n);
+                        } else {
+                            if let Some(mut ln) = last_node {
+                                ret_nodes.push({
+                                    ln.statement = Statement::Ident(text.clone());
+                                    ln.line = text.clone();
+                                    (ln.start.1).1 = start as usize;
+                                    ln
+                                })
+                            }
+                            last_node = None;
+                            ret_nodes.push(n);
+                        }
+                    }
+                    if let Some(mut ln) = last_node {
+                        ret_nodes.push({
+                            ln.statement = Statement::Ident(text.clone());
+                            ln.line = text.clone();
+                            (ln.start.1).1 = start as usize;
+                            ln
+                        })
+                    }
+                    ret_nodes
+                }),
+                Rule::macro_arg_unquoted_bracket => Statement::Bracket(Box::new(Node {
+                    file: file.to_string(),
+                    start: (pair.as_span().start_pos().pos(), pair.as_span().start_pos().line_col()),
+                    end: (pair.as_span().end_pos().pos(), pair.as_span().end_pos().line_col()),
+                    line: pair.as_span().as_str().to_string(),
+                    statement: Statement::Spaced(
+                        pair.into_inner()
+                            .map(|x| {
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
+                            .collect::<ResultNodeVec>()?,
+                    ),
+                })),
+                Rule::macro_arg_unquoted_square => Statement::Square(Box::new(Node {
+                    file: file.to_string(),
+                    start: (pair.as_span().start_pos().pos(), pair.as_span().start_pos().line_col()),
+                    end: (pair.as_span().end_pos().pos(), pair.as_span().end_pos().line_col()),
+                    line: pair.as_span().as_str().to_string(),
+                    statement: Statement::Spaced(
+                        pair.into_inner()
+                            .map(|x| {
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
+                            .collect::<ResultNodeVec>()?,
+                    ),
+                })),
                 Rule::define_macro_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
                 Rule::undef => Statement::Undefine(pair.into_inner().next().unwrap().as_str().to_string()),
                 Rule::ifdef => {
                     let mut parts = pair.into_inner();
                     Statement::IfDef {
+                        ident: String::from(parts.next().unwrap().as_str()),
+                        positive: parts
+                            .next()
+                            .unwrap()
+                            .into_inner()
+                            .map(|x| {
+                                let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                if let Ok((n, i)) = r {
+                                    i.iter().for_each(|x| included.push(x.clone()));
+                                    Ok(n)
+                                } else {
+                                    Err(r.err().unwrap())
+                                }
+                            })
+                            .collect::<ResultNodeVec>()?,
+                        negative: {
+                            if let Some(part) = parts.next() {
+                                Some(
+                                    part.into_inner()
+                                        .map(|x| {
+                                            let r = Node::from_expr(file, wd.clone(), source, x, resolver);
+                                            if let Ok((n, i)) = r {
+                                                i.iter().for_each(|x| included.push(x.clone()));
+                                                Ok(n)
+                                            } else {
+                                                Err(r.err().unwrap())
+                                            }
+                                        })
+                                        .collect::<ResultNodeVec>()?,
+                                )
+                            } else {
+                                None
+                            }
+                        },
+                    }
+                }
+                Rule::ifndef => {
+                    let mut parts = pair.into_inner();
+                    Statement::IfNDef {
                         ident: String::from(parts.next().unwrap().as_str()),
                         positive: parts
                             .next()

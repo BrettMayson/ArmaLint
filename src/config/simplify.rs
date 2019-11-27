@@ -118,9 +118,13 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             Some((super::get_ident(ident.statement)?, get_value(value.statement, expand)?))
         }
         Statement::Config(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
+        // Internal
+        Statement::Inserted(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
         // Ignore
         Statement::DefineMacro { .. } => None,
         Statement::Define { .. } => None,
+        Statement::Undefine { .. } => None,
+        Statement::Gone => None,
         _ => {
             panic!("Not ready for {:#?}", node);
         }

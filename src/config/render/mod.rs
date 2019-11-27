@@ -69,7 +69,9 @@ impl Renderer {
                 }
                 match self.options.bracket_style {
                     BracketStyle::Allman => {
-                        output.push_str("\n");
+                        if !props.is_empty() {
+                            output.push_str("\n");
+                        }
                         output.push_str(&self.indent(indent));
                     }
                     BracketStyle::Linux => output.push_str(" "),
@@ -94,13 +96,26 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&self.render_statement(*stmt, indent)?),
-            Statement::Defined(node, _) => output.push_str(&self.render_node(*node.clone(), indent)?),
+            Statement::Defined(node, _) => output.push_str(&self.render_node(*node, indent)?),
             Statement::Inserted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
-            // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
+            Statement::Spaced(nodes) => {
+                let mut pieces = Vec::new();
+                for n in nodes {
+                    pieces.push(self.render_node(n, indent)?)
+                }
+                output.push_str(&pieces.join(" "));
+            }
+            Statement::Bracket(node) => output.push_str(&format!("({})", self.render_node(*node, indent)?)),
+            Statement::Square(node) => output.push_str(&format!("[{}]", self.render_node(*node, indent)?)),
+            Statement::Quoted(stmt) => {
+                output.push_str(&format!("\"{}\"", self.render_statement(*stmt, indent)?.replace('"', "\"\"")))
+            }
+            // Should be processed out
             Statement::FILE => panic!("A file marker was not processed out, this should be reported as a bug"),
             Statement::LINE => panic!("A line marker was not processed out, this should be reported as a bug"),
             Statement::IfDef { .. } => panic!("An IfDef marker was not processed out, this should be reported as a bug"),
+            Statement::IfNDef { .. } => panic!("An IfNDef marker was not processed out, this should be reported as a bug"),
             Statement::MacroBody(_) => panic!("A MacroBody marker was not processed out, this should be reported as a bug"),
             Statement::MacroCallArg(_) => {
                 panic!("A MacroCallArg marker was not processed out, this should be reported as a bug")
@@ -108,9 +123,9 @@ impl Renderer {
             // Ignored
             Statement::Define { .. } => {}
             Statement::DefineMacro { .. } => {}
-            Statement::FlagAsIdent(_, _) => {}
+            Statement::FlagAsIdent(_, _, _) => {}
             Statement::Gone => {}
-            Statement::InvalidCall(_, _) => {}
+            Statement::InvalidCall(_, _, _) => {}
             Statement::MacroCall { .. } => {}
             Statement::Undefine(_) => {}
             Statement::Undefined(_, _) => {}

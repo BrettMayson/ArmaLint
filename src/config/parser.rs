@@ -1,39 +1,14 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use super::Report;
+use super::{Node, AST};
 use crate::ArmaLintError;
-
-mod node;
-pub use node::Node;
-
-mod statement;
-pub use statement::Statement;
 
 use pest::Parser;
 
 #[derive(Parser)]
 #[grammar = "config/config.pest"]
 pub struct ConfigParser;
-
-#[derive(Debug, Clone)]
-/// Abstract Syntax Tree
-pub struct AST {
-    pub config: Node,
-    pub files: HashMap<String, (Option<(String, usize)>, String)>,
-    pub processed: bool,
-    pub report: Option<Report>,
-}
-
-impl AST {
-    pub fn valid(&self) -> bool {
-        if let Some(report) = &self.report {
-            report.errors.is_empty()
-        } else {
-            true
-        }
-    }
-}
 
 /// Converts a raw string into an AST
 ///
@@ -48,18 +23,30 @@ pub fn parse(file: &str, source: &str) -> Result<AST, ArmaLintError> {
     let clean = source.replace("\r", "");
     let mut files = HashMap::new();
     files.insert(file.to_string(), (None, clean.to_string()));
-    let pair = ConfigParser::parse(Rule::file, &clean)?
+    let pair = ConfigParser::parse(Rule::file, &clean)
+        .map_err(|e| match e.variant {
+            pest::error::ErrorVariant::ParsingError { positives, negatives } => ArmaLintError::ParsingError {
+                positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
+                negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
+                position: e.line_col,
+                file: file.to_string(),
+            },
+            _ => e.into(),
+        })?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let pair = pair.into_inner().next().unwrap();
-    let (config, included) = Node::from_expr(file, std::env::current_dir().unwrap(), source, pair, |filename, wd| {
-        match std::fs::read_to_string(filename) {
-            Ok(content) =>  {
-                Ok((content, wd.clone()))
-            }
-            Err(e) => Err(e.into())
-        }
-    })?;
+    let (config, included) =
+        Node::from_expr(
+            file,
+            std::env::current_dir().unwrap(),
+            source,
+            pair,
+            |filename, wd| match std::fs::read_to_string(filename) {
+                Ok(content) => Ok((content, wd.clone())),
+                Err(e) => Err(e.into()),
+            },
+        )?;
     included.into_iter().for_each(|x| {
         files.insert(x.0, (x.1, x.2));
     });
@@ -96,7 +83,16 @@ where
     let clean = source.replace("\r", "");
     let mut files = HashMap::new();
     files.insert(file.to_string(), (None, clean.to_string()));
-    let pair = ConfigParser::parse(Rule::file, &clean)?
+    let pair = ConfigParser::parse(Rule::file, &clean)
+        .map_err(|e| match e.variant {
+            pest::error::ErrorVariant::ParsingError { positives, negatives } => ArmaLintError::ParsingError {
+                positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
+                negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
+                position: e.line_col,
+                file: file.to_string(),
+            },
+            _ => e.into(),
+        })?
         .next()
         .ok_or_else(|| ArmaLintError::InvalidInput(clean.clone()))?;
     let pair = pair.into_inner().next().unwrap();
@@ -121,6 +117,7 @@ impl From<pest::error::Error<Rule>> for ArmaLintError {
                 positives: positives.into_iter().map(|x| format!("{:?}", x)).collect(),
                 negatives: negatives.into_iter().map(|x| format!("{:?}", x)).collect(),
                 position: err.line_col,
+                file: String::from("UNKNOWN"),
             },
             pest::error::ErrorVariant::CustomError { message } => {
                 panic!(message);

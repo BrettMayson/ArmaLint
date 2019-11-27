@@ -2,7 +2,7 @@ file = { SOI ~ config ~ EOI }
 config = { item+ }
 item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) | ident ) ~ ";") | directive) }
 
-prop = { (ident ~ "=" ~ value | identarray ~ "=" ~ array) }
+prop = { ((ident | macro_call) ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
 
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
@@ -19,8 +19,8 @@ value = _{
 identarray = ${ ident ~ "[]" }
 
 bool = @{ "true" | "false" }
-integer = @{ ASCII_DIGIT+ }
-float = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
+integer = @{ "-"? ~ ASCII_DIGIT+ }
+float = @{ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* }
 string_wrapper = _{ "\"" ~ string ~ "\"" }
 string = @{ ( "\"\"" | (!"\"" ~ ANY) )* }
 unquoted = ${ ( macro_call | "\\\n" | "\\\r\n" | char )+ }
@@ -30,26 +30,30 @@ special = { "__FILE__" | "__LINE__" }
 
 array = !{ "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
 
-class = { "class " ~ ident ~ "{" ~ item+ ~ "}" }
-classextends = { "class " ~ ident ~ ":" ~ ident ~ "{" ~ item+ ~ "}" }
-classdef = { "class " ~ ident }
-classdelete = { "delete " ~ ident }
+class = { "class " ~ (ident | macro_call) ~ "{" ~ item* ~ "}" }
+classextends = { "class " ~ (ident | macro_call) ~ ":" ~ (ident | macro_call) ~ "{" ~ item* ~ "}" }
+classdef = { "class " ~ (ident | macro_call) }
+classdelete = { "delete " ~ (ident | macro_call) }
 
 macro_call = ${ ident ~ "(" ~ macro_call_args ~ ")" }
 macro_call_args = { macro_call_arg ~ ("," ~ macro_call_arg)* }
-macro_call_arg = { string_wrapper | special | (macro_call | macro_arg_char)* }
-macro_arg_char = { !(")" | ",") ~ ANY }
+macro_call_arg = { string_wrapper | special | (macro_call | macro_arg_unquoted | " ")* }
+macro_arg_unquoted = { ( macro_arg_unquoted_bracket | macro_arg_unquoted_square | macro_arg_char)+ }
+macro_arg_char = { (!(")" | "," | " " | "]") ~ ANY) }
+macro_arg_unquoted_bracket = { "(" ~ (macro_call | macro_arg_unquoted | " ")* ~ ")" }
+macro_arg_unquoted_square = { "[" ~ (macro_call | macro_arg_unquoted | " ")* ~ "]" }
 
 
 // Directives
 
-directive = _{ include | define | define_macro | define_flag | undef | ifdef }
+directive = _{ include | define | define_macro | define_flag | undef | ifdef | ifndef }
 
 include = { "#include" ~ string_wrapper | "#include" ~ "<" ~ include_file ~ ">" }
 include_file = @{ ( (!">" ~ ANY) )* }
 
-define = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_whitespace ~ value }
+define = ${ "#define" ~ WHITESPACE+ ~ ident ~ define_whitespace ~ (bool | float | integer | string_wrapper | special | macro_call | define_body) ~ "\n" }
 define_whitespace = _{ " " }
+define_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ }
 
 define_flag = ${ "#define" ~ WHITESPACE+ ~ ident ~ "\n" }
 
@@ -59,6 +63,7 @@ define_macro_body = @{ ( "\\\n" | "\\\r\n" | (!"\n" ~ ANY) )+ ~ "\n" }
 
 undef = ${ "#undef" ~ WHITESPACE+ ~ ident }
 ifdef = ${ "#ifdef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n"? ~ "#else\n" ~ conditional_block)? ~ "\n"? ~ "#endif" }
+ifndef = ${ "#ifndef" ~ WHITESPACE+ ~ ident ~ "\n" ~ conditional_block ~ ("\n"? ~ "#else\n" ~ conditional_block)? ~ "\n"? ~ "#endif" }
 conditional_block = !{ (WHITESPACE* ~ item)+ }
 
 COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }

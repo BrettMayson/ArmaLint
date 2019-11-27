@@ -20,17 +20,23 @@ impl Command for Lint {
                 let mut content = String::new();
                 f.read_to_string(&mut content)?;
                 let ast = crate::config::parse(args.value_of("file").unwrap(), &content)?;
-                let mut preprocessor = crate::config::PreProcessor::new();
-                let processed = preprocessor.process(ast)?;
-                let report = processed.report.clone().unwrap();
-                println!("Syntax: Valid");
+                let processed = ast.process()?;
+                println!("{:?}", processed);
+                // println!("Syntax: Valid");
                 println!("PreProcessor: {}", if processed.valid() { "Valid" } else { "Invalid" });
+                let report = processed.report.clone().unwrap();
                 for warning in report.warnings {
                     node_warning!(processed.files, warning);
                 }
                 for error in report.errors {
                     node_error!(processed.files, error);
                 }
+
+                let render = crate::config::Renderer::default();
+                let out = render.render(processed)?;
+                println!("====================");
+                println!("{}", out);
+                println!("====================");
             }
             _ => {
                 return Err(ArmaLintError::InvalidInput(format!(
