@@ -30,10 +30,10 @@ special = { "__FILE__" | "__LINE__" }
 
 array = !{ "{" ~ "}" | "{" ~ (array | value) ~ ("," ~ (array | value))* ~ "}" }
 
-class = { "class " ~ (ident | macro_call) ~ "{" ~ item* ~ "}" }
-classextends = { "class " ~ (ident | macro_call) ~ ":" ~ (ident | macro_call) ~ "{" ~ item* ~ "}" }
-classdef = { "class " ~ (ident | macro_call) }
-classdelete = { "delete " ~ (ident | macro_call) }
+class = { "class " ~ (macro_call | ident) ~ "{" ~ item* ~ "}" }
+classextends = { "class " ~ (macro_call | ident) ~ ":" ~ (macro_call | ident) ~ "{" ~ item* ~ "}" }
+classdef = { "class " ~ (macro_call | ident) }
+classdelete = { "delete " ~ (macro_call | ident) }
 
 macro_call = ${ ident ~ "(" ~ macro_call_args ~ ")" }
 macro_call_args = { macro_call_arg ~ ("," ~ macro_call_arg)* }
