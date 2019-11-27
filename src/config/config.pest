@@ -1,8 +1,8 @@
 file = { SOI ~ config ~ EOI }
 config = { item+ }
-item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | (!"#" ~ macro_call) | ident ) ~ ";") | directive) }
+item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete | !"#" ~ macro_call | ident ) ~ ";") | directive) }
 
-prop = { ((ident | macro_call) ~ "=" ~ value | identarray ~ "=" ~ array) }
+prop = { ((macro_call | ident) ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
 
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
