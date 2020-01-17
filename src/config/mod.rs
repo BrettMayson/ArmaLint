@@ -14,8 +14,7 @@ pub use report::Report;
 mod render;
 pub use render::{BracketStyle, RenderOptions, Renderer};
 
-mod rapify;
-pub mod simplify;
+pub mod rapify;
 
 type ResultNodeVec = Result<Vec<Node>, crate::ArmaLintError>;
 

@@ -93,12 +93,12 @@ impl Node {
                     }
                 }
                 Rule::classdef => Statement::ClassDef(Box::new({
-                    let (n, i) = Node::from_expr(file, wd.clone(), source, pair.into_inner().next().unwrap(), resolver)?;
+                    let (n, i) = Node::from_expr(file, wd, source, pair.into_inner().next().unwrap(), resolver)?;
                     i.iter().for_each(|x| included.push(x.clone()));
                     n
                 })),
                 Rule::classdelete => Statement::ClassDelete(Box::new({
-                    let (n, i) = Node::from_expr(file, wd.clone(), source, pair.into_inner().next().unwrap(), resolver)?;
+                    let (n, i) = Node::from_expr(file, wd, source, pair.into_inner().next().unwrap(), resolver)?;
                     i.iter().for_each(|x| included.push(x.clone()));
                     n
                 })),
@@ -111,7 +111,7 @@ impl Node {
                             n
                         }),
                         value: Box::new({
-                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd, source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
@@ -127,7 +127,7 @@ impl Node {
                             n
                         }),
                         value: Box::new({
-                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd, source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         }),
@@ -196,7 +196,7 @@ impl Node {
                     if let Some(mut ln) = last_node {
                         ret_nodes.push({
                             ln.statement = Statement::Ident(text.clone());
-                            ln.line = text.clone();
+                            ln.line = text;
                             (ln.start.1).1 = start as usize;
                             ln
                         })
@@ -223,7 +223,7 @@ impl Node {
                     Statement::Define {
                         ident: String::from(parts.next().unwrap().as_str()),
                         value: Some(Box::new({
-                            let (n, i) = Node::from_expr(file, wd.clone(), source, parts.next().unwrap(), resolver)?;
+                            let (n, i) = Node::from_expr(file, wd, source, parts.next().unwrap(), resolver)?;
                             i.iter().for_each(|x| included.push(x.clone()));
                             n
                         })),
@@ -257,7 +257,7 @@ impl Node {
                                 Box::new(stmt.config)
                             } else {
                                 Box::new({
-                                    let (n, i) = Node::from_expr(file, wd.clone(), source, body.clone(), resolver)?;
+                                    let (n, i) = Node::from_expr(file, wd, source, body.clone(), resolver)?;
                                     i.iter().for_each(|x| included.push(x.clone()));
                                     n
                                 })
@@ -342,7 +342,7 @@ impl Node {
                     if let Some(mut ln) = last_node {
                         ret_nodes.push({
                             ln.statement = Statement::Ident(text.clone());
-                            ln.line = text.clone();
+                            ln.line = text;
                             (ln.start.1).1 = start as usize;
                             ln
                         })

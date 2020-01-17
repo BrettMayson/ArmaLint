@@ -1,110 +1,18 @@
-use std::io::{BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
+use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use std::iter::Sum;
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-use super::simplify::{Array, ArrayElement, Class, Config, Entry};
+use super::{Array, Entry};
 use crate::io::*;
 use crate::ArmaLintError;
 
-impl ArrayElement {
-    pub fn rapified_length(&self) -> usize {
-        match self {
-            ArrayElement::Str(s) => s.len() + 2,
-            ArrayElement::Float(_f) => 5,
-            ArrayElement::Int(_i) => 5,
-            ArrayElement::Array(a) => {
-                1 + compressed_int_len(a.elements.len() as u32) + usize::sum(a.elements.iter().map(|e| e.rapified_length()))
-            }
-        }
-    }
-}
-
-impl Array {
-    pub fn write_rapified<O: Write>(&self, output: &mut O) -> Result<usize, ArmaLintError> {
-        let mut written = output.write_compressed_int(self.elements.len() as u32)?;
-
-        for element in &self.elements {
-            match element {
-                ArrayElement::Str(s) => {
-                    output.write_all(&[0])?;
-                    output.write_cstring(s)?;
-                    written += s.len() + 2;
-                }
-                ArrayElement::Float(f) => {
-                    output.write_all(&[1])?;
-                    output.write_f32::<LittleEndian>(*f)?;
-                    written += 5;
-                }
-                ArrayElement::Int(i) => {
-                    output.write_all(&[2])?;
-                    output.write_i32::<LittleEndian>(*i)?;
-                    written += 5;
-                }
-                ArrayElement::Array(a) => {
-                    output.write_all(&[3])?;
-                    written += 1 + a.write_rapified(output)?;
-                }
-            }
-        }
-
-        Ok(written)
-    }
-
-    pub fn read_rapified<I: Read + Seek>(input: &mut I) -> Result<Array, ArmaLintError> {
-        let num_elements: u32 = input.read_compressed_int()?;
-        let mut elements: Vec<ArrayElement> = Vec::with_capacity(num_elements as usize);
-
-        for _i in 0..num_elements {
-            let element_type: u8 = input.bytes().next().unwrap()?;
-
-            if element_type == 0 {
-                elements.push(ArrayElement::Str(input.read_cstring()?));
-            } else if element_type == 1 {
-                elements.push(ArrayElement::Float(input.read_f32::<LittleEndian>()?));
-            } else if element_type == 2 {
-                elements.push(ArrayElement::Int(input.read_i32::<LittleEndian>()?));
-            } else if element_type == 3 {
-                elements.push(ArrayElement::Array(Array::read_rapified(input)?));
-            } else {
-                return Err(ArmaLintError::InvalidInput(format!(
-                    "Unrecognized array element type: {}",
-                    element_type
-                )));
-            }
-        }
-
-        Ok(Array { expand: false, elements })
-    }
-}
-
-impl Entry {
-    // without the name
-    pub fn rapified_length(&self) -> usize {
-        match self {
-            Entry::Str(s) => s.len() + 3,
-            Entry::Float(_f) => 6,
-            Entry::Int(_i) => 6,
-            Entry::Array(a) => {
-                let len = 1
-                    + compressed_int_len(a.elements.len() as u32)
-                    + usize::sum(a.elements.iter().map(|e| e.rapified_length()));
-                if a.expand {
-                    len + 4
-                } else {
-                    len
-                }
-            }
-            Entry::Class(c) => {
-                if c.external || c.deletion {
-                    1
-                } else {
-                    5
-                }
-            }
-            Entry::Invisible(_) => 0,
-        }
-    }
+#[derive(Debug)]
+pub struct Class {
+    pub parent: String,
+    pub external: bool,
+    pub deletion: bool,
+    pub entries: Vec<(String, Entry)>,
 }
 
 impl Class {
@@ -185,10 +93,10 @@ impl Class {
                             let buffer: Box<[u8]> = vec![0; c.rapified_length()].into_boxed_slice();
                             let mut cursor: Cursor<Box<[u8]>> = Cursor::new(buffer);
                             class_offset += c.write_rapified(&mut cursor, class_offset)?;
+
                             class_bodies.push(cursor);
                         }
                     }
-                    Entry::Invisible(_) => {}
                 }
                 assert_eq!(written - pre_write, entry.rapified_length() + name.len() + 1);
             }
@@ -280,58 +188,6 @@ impl Class {
             external: false,
             deletion: false,
             entries,
-        })
-    }
-}
-
-impl Config {
-    /// Writes the rapified config to the output.
-    pub fn write_rapified<O: Write>(&self, output: &mut O) -> Result<(), ArmaLintError> {
-        let mut writer = BufWriter::new(output);
-
-        writer.write_all(b"\0raP")?;
-        writer.write_all(b"\0\0\0\0\x08\0\0\0")?; // always_0, always_8
-
-        let buffer: Box<[u8]> = vec![0; self.root.rapified_length()].into_boxed_slice();
-        let mut cursor: Cursor<Box<[u8]>> = Cursor::new(buffer);
-        self.root.write_rapified(&mut cursor, 16)?;
-
-        let enum_offset: u32 = 16 + cursor.get_ref().len() as u32;
-        writer.write_u32::<LittleEndian>(enum_offset)?;
-
-        writer.write_all(cursor.get_ref())?;
-
-        writer.write_all(b"\0\0\0\0")?;
-
-        Ok(())
-    }
-
-    /// Returns the rapified config as a `Cursor`.
-    pub fn to_cursor(&self) -> Result<Cursor<Box<[u8]>>, ArmaLintError> {
-        let len = self.root.rapified_length() + 20;
-
-        let buffer: Box<[u8]> = vec![0; len].into_boxed_slice();
-        let mut cursor: Cursor<Box<[u8]>> = Cursor::new(buffer);
-        self.write_rapified(&mut cursor)?;
-
-        Ok(cursor)
-    }
-
-    /// Reads the rapified config from input.
-    pub fn read_rapified<I: Read + Seek>(input: &mut I) -> Result<Config, ArmaLintError> {
-        let mut reader = BufReader::new(input);
-
-        let mut buffer = [0; 4];
-        reader.read_exact(&mut buffer)?;
-
-        if &buffer != b"\0raP" {
-            return Err(ArmaLintError::InvalidInput(
-                "File doesn't seem to be a rapified config.".to_string(),
-            ));
-        }
-
-        Ok(Config {
-            root: Class::read_rapified(&mut reader, 0)?,
         })
     }
 }

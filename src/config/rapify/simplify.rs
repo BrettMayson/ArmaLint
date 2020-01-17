@@ -1,30 +1,7 @@
-use super::{Node, Statement, AST};
+use super::super::{get_ident, Node, Statement, AST};
+use super::{Array, ArrayElement, Class, Config, Entry};
+use crate::strum::AsStaticRef;
 use crate::ArmaLintError;
-
-use strum::AsStaticRef;
-
-#[derive(Debug)]
-pub struct Config {
-    pub root: Class,
-}
-
-#[derive(Debug, Clone)]
-pub struct Class {
-    pub parent: String,
-    pub external: bool,
-    pub deletion: bool,
-    pub entries: Vec<(String, Entry)>,
-}
-
-#[derive(Debug, Clone)]
-pub enum Entry {
-    Str(String),
-    Float(f32),
-    Int(i32),
-    Array(Array),
-    Class(Class),
-    Invisible(Vec<(String, Entry)>),
-}
 
 impl Into<ArrayElement> for Entry {
     fn into(self) -> ArrayElement {
@@ -36,20 +13,6 @@ impl Into<ArrayElement> for Entry {
             _ => panic!("Invalid item was found in array: {:?}", self),
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct Array {
-    pub expand: bool,
-    pub elements: Vec<ArrayElement>,
-}
-
-#[derive(Debug, Clone)]
-pub enum ArrayElement {
-    Str(String),
-    Float(f32),
-    Int(i32),
-    Array(Array),
 }
 
 impl Config {
@@ -76,13 +39,7 @@ pub fn get_entries(nodes: Vec<Node>) -> Result<Vec<(String, Entry)>, ArmaLintErr
     let mut entries = Vec::new();
     for node in nodes {
         if let Some((ident, entry)) = get_entry(node)? {
-            if let Entry::Invisible(e) = entry {
-                for i in e {
-                    entries.push(i);
-                }
-            } else {
-                entries.push((ident, entry));
-            }
+            entries.push((ident, entry));
         }
     }
     Ok(entries)
@@ -91,11 +48,11 @@ pub fn get_entries(nodes: Vec<Node>) -> Result<Vec<(String, Entry)>, ArmaLintErr
 pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
     Ok(match node.statement {
         Statement::Class { ident, extends, props } => Some((
-            super::get_ident(ident.statement)?,
+            get_ident(ident.statement)?,
             Entry::Class(Class {
                 parent: {
                     if let Some(ex) = extends {
-                        super::get_ident(ex.statement)?
+                        get_ident(ex.statement)?
                     } else {
                         String::new()
                     }
@@ -106,7 +63,7 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             }),
         )),
         Statement::ClassDef(ident) => Some((
-            super::get_ident(ident.statement)?,
+            get_ident(ident.statement)?,
             Entry::Class(Class {
                 parent: String::new(),
                 deletion: false,
@@ -115,16 +72,9 @@ pub fn get_entry(node: Node) -> Result<Option<(String, Entry)>, ArmaLintError> {
             }),
         )),
         Statement::Property { ident, value, expand } => {
-            Some((super::get_ident(ident.statement)?, get_value(value.statement, expand)?))
+            Some((get_ident(ident.statement)?, get_value(value.statement, expand)?))
         }
-        Statement::Config(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
-        // Internal
-        Statement::Inserted(inner) => Some((String::new(), Entry::Invisible(get_entries(inner)?))),
         // Ignore
-        Statement::DefineMacro { .. } => None,
-        Statement::Define { .. } => None,
-        Statement::Undefine { .. } => None,
-        Statement::Gone => None,
         _ => {
             panic!("Not ready for {:#?}", node);
         }
@@ -142,7 +92,6 @@ pub fn get_value(statement: Statement, expand: bool) -> Result<Entry, ArmaLintEr
             expand,
             elements: get_array(val)?,
         }),
-        Statement::Defined(val, _) => get_value(val.statement, expand)?,
         _ => {
             return Err(ArmaLintError::InvalidProperty(format!(
                 "Invalid property type `{}`",

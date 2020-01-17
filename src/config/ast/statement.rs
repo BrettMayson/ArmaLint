@@ -100,6 +100,12 @@ impl Statement {
                     }
                     &ret
                 }
+                Statement::Unquoted(ref nodes) => {
+                    for n in nodes {
+                        ret.push_str(&n.statement.string().unwrap());
+                    }
+                    &ret
+                }
                 Statement::Spaced(ref nodes) => {
                     let mut retn = Vec::new();
                     for n in nodes {
