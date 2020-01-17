@@ -37,7 +37,7 @@ impl Command for Rapify {
                 simple.write_rapified(&mut rapified).unwrap();
                 use std::io::Write;
                 let mut out = create_file!("out.rap").unwrap();
-                out.write(rapified.get_ref());
+                out.write_all(rapified.get_ref())?;
             }
             _ => {
                 return Err(ArmaLintError::InvalidInput(format!(

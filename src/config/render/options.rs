@@ -28,6 +28,7 @@ pub enum IndentationType {
 pub struct RenderOptions {
     pub bracket_style: BracketStyle,
     pub indentation_type: IndentationType,
+    pub new_lines: bool,
 }
 
 impl Default for RenderOptions {
@@ -35,7 +36,16 @@ impl Default for RenderOptions {
         Self {
             bracket_style: BracketStyle::Allman,
             indentation_type: IndentationType::Spaces(4),
+            new_lines: true,
         }
+    }
+}
+
+impl RenderOptions {
+    pub fn single_line() -> Self {
+        let mut def = Self::default();
+        def.new_lines = false;
+        def
     }
 }
 
@@ -50,6 +60,7 @@ fn test_brackets() {
         let linux_options = RenderOptions {
             bracket_style: BracketStyle::Linux,
             indentation_type: IndentationType::Spaces(4),
+            new_lines: true,
         };
         let renderer = super::Renderer::new(linux_options);
         assert_eq!(
@@ -69,6 +80,7 @@ class TestClass: Test {
         let linux_options = RenderOptions {
             bracket_style: BracketStyle::Allman,
             indentation_type: IndentationType::Spaces(4),
+            new_lines: true,
         };
         let renderer = super::Renderer::new(linux_options);
         assert_eq!(
@@ -98,6 +110,7 @@ fn test_indents() {
         let linux_options = RenderOptions {
             bracket_style: BracketStyle::Linux,
             indentation_type: IndentationType::Tab,
+            new_lines: true,
         };
         let renderer = super::Renderer::new(linux_options);
         assert_eq!(
@@ -118,6 +131,7 @@ class TestClass: Test {
         let linux_options = RenderOptions {
             bracket_style: BracketStyle::Linux,
             indentation_type: IndentationType::Spaces(4),
+            new_lines: true,
         };
         let renderer = super::Renderer::new(linux_options);
         assert_eq!(
@@ -130,6 +144,48 @@ class TestClass: Test {
     someNumber = 123;
     someFloat = 3.14;
 };"##
+                .to_string()
+        );
+    }
+}
+
+#[test]
+fn test_new_line() {
+    let content = std::fs::read_to_string("tests/basic.cpp").unwrap();
+    let ast = crate::config::parse("basic.cpp", &content).unwrap();
+    let mut preprocessor = crate::config::PreProcessor::new();
+    let processed = preprocessor.process(ast).unwrap();
+    // Test New Line
+    {
+        let linux_options = RenderOptions {
+            bracket_style: BracketStyle::Linux,
+            indentation_type: IndentationType::Spaces(4),
+            new_lines: true,
+        };
+        let renderer = super::Renderer::new(linux_options);
+        assert_eq!(
+            renderer.render(processed.clone()).unwrap(),
+            r##"class Test;
+class TestClass: Test {
+    array[] = {1, 3, 5};
+    deepArray[] = {{1, 2}, {3, 4}};
+    someString = "This is some string";
+    someNumber = 123;
+    someFloat = 3.14;
+};"##
+        );
+    }
+    // Test No New Line
+    {
+        let linux_options = RenderOptions {
+            bracket_style: BracketStyle::Linux,
+            indentation_type: IndentationType::Spaces(4),
+            new_lines: false,
+        };
+        let renderer = super::Renderer::new(linux_options);
+        assert_eq!(
+            renderer.render(processed).unwrap(),
+            r##"class Test;class TestClass: Test {array[] = {1, 3, 5};deepArray[] = {{1, 2}, {3, 4}};someString = "This is some string";someNumber = 123;someFloat = 3.14;};"##
                 .to_string()
         );
     }

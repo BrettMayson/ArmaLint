@@ -20,7 +20,7 @@ impl PreProcessor {
     }
 
     pub fn process(&mut self, ast: AST) -> Result<AST, ArmaLintError> {
-        let mut ast = ast.clone();
+        let mut ast = ast;
         let config = match ast.config.statement {
             Statement::Config(c) => c,
             _ => return Err(ArmaLintError::NotRoot),
@@ -42,7 +42,7 @@ impl PreProcessor {
         let mut ret_node = node.clone();
         match node.statement {
             Statement::Config(nodes) => {
-                ret_node.statement = Statement::Config(self.process_nodes(nodes.to_vec(), macro_root.clone())?);
+                ret_node.statement = Statement::Config(self.process_nodes(nodes.to_vec(), macro_root)?);
             }
             Statement::Bool(_) => {}
             Statement::Integer(_) => {}
@@ -57,23 +57,23 @@ impl PreProcessor {
             Statement::Property { ident, value, expand } => {
                 ret_node.statement = Statement::Property {
                     ident: Box::new(self.process_node(*ident, macro_root.clone())?),
-                    value: Box::new(self.process_node(*value, macro_root.clone())?),
+                    value: Box::new(self.process_node(*value, macro_root)?),
                     expand,
                 };
             }
             Statement::Class { ident, extends, props } => {
                 ret_node.statement = Statement::Class {
-                    ident: Box::new(self.process_node(*ident.clone(), macro_root.clone())?),
+                    ident: Box::new(self.process_node(*ident, macro_root.clone())?),
                     extends: if let Some(e) = extends {
-                        Some(Box::new(self.process_node(*e.clone(), macro_root.clone())?))
+                        Some(Box::new(self.process_node(*e, macro_root.clone())?))
                     } else {
                         None
                     },
-                    props: self.process_nodes(props.to_vec(), macro_root.clone())?,
+                    props: self.process_nodes(props.to_vec(), macro_root)?,
                 }
             }
             Statement::ClassDef(ident) => {
-                ret_node.statement = Statement::ClassDef(Box::new(self.process_node(*ident.clone(), macro_root)?));
+                ret_node.statement = Statement::ClassDef(Box::new(self.process_node(*ident, macro_root)?));
             }
             Statement::Array(ref values) => {
                 ret_node.statement = Statement::Array(
@@ -141,7 +141,7 @@ impl PreProcessor {
                                 mac_args.len()
                             ),
                             Box::new(node.statement.clone()),
-                            Box::new(mac_node.clone()),
+                            Box::new(mac_node),
                         );
                         self.report.errors.push(ret_node.clone());
                     } else {
@@ -162,9 +162,9 @@ impl PreProcessor {
                         }
                         ret_node.statement = self
                             .process_node(
-                                mac_node.clone(),
+                                mac_node,
                                 if node.file.starts_with("MACRO:") {
-                                    macro_root.clone()
+                                    macro_root
                                 } else {
                                     Some(node.clone())
                                 },
@@ -192,9 +192,9 @@ impl PreProcessor {
                 ref negative,
             } => {
                 ret_node.statement = if self.defines.contains_key(ident) || self.macros.contains_key(ident) {
-                    Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
+                    Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root)?)
                 } else if let Some(n) = negative {
-                    Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
+                    Statement::Inserted(self.process_nodes(n.to_vec(), macro_root)?)
                 } else {
                     Statement::Gone
                 };
@@ -205,9 +205,9 @@ impl PreProcessor {
                 ref negative,
             } => {
                 ret_node.statement = if !(self.defines.contains_key(ident) || self.macros.contains_key(ident)) {
-                    Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root.clone())?)
+                    Statement::Inserted(self.process_nodes(positive.to_vec(), macro_root)?)
                 } else if let Some(n) = negative {
-                    Statement::Inserted(self.process_nodes(n.to_vec(), macro_root.clone())?)
+                    Statement::Inserted(self.process_nodes(n.to_vec(), macro_root)?)
                 } else {
                     Statement::Gone
                 };
@@ -231,7 +231,7 @@ impl PreProcessor {
             warn_node.statement = Statement::Redefine(
                 format!("Redefining `{}`", ident),
                 Box::new(warn_node.statement.clone()),
-                old.1.clone(),
+                old.1,
             );
             return Some(warn_node);
         };
@@ -239,7 +239,7 @@ impl PreProcessor {
             warn_node.statement = Statement::Redefine(
                 format!("Redefining `{}`", ident),
                 Box::new(warn_node.statement.clone()),
-                Some(Box::new(old.1.clone())),
+                Some(Box::new(old.1)),
             );
             return Some(warn_node);
         };

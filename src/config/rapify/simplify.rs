@@ -20,7 +20,15 @@ impl Config {
         if !ast.processed {
             return Err(ArmaLintError::NotProcessed);
         }
-        if let Statement::Config(inner) = ast.config.statement {
+        let processed =  {
+            let renderer = super::super::Renderer::new(super::super::RenderOptions::single_line());
+            let file = ast.config.file.to_string();
+            let rendered = renderer.render(ast).unwrap();
+            let ast = crate::config::parse(&file, &rendered).unwrap();
+            let mut preprocessor = crate::config::PreProcessor::new();
+            preprocessor.process(ast).unwrap()
+        };
+        if let Statement::Config(inner) = processed.config.statement {
             Ok(Config {
                 root: Class {
                     parent: String::new(),

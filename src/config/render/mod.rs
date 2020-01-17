@@ -45,44 +45,69 @@ impl Renderer {
         let mut output = String::new();
         match statement {
             Statement::Property { ident, value, expand } => {
-                output.push_str(&self.indent(indent));
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
                 output.push_str(&format!(
-                    "{} {} {};\n",
+                    "{} {} {};{}",
                     self.render_node(*ident, indent)?,
                     if expand { "+=" } else { "=" },
-                    self.render_statement(value.statement, indent)?
+                    self.render_statement(value.statement, indent)?,
+                    if self.options.new_lines { "\n" } else { "" },
                 ));
             }
-            Statement::Ident(val) => output.push_str(&val.to_string()),
-            Statement::IdentArray(val) => output.push_str(&format!("{}[]", val.to_string())),
+            Statement::Ident(val) => output.push_str(&val),
+            Statement::IdentArray(val) => output.push_str(&format!("{}[]", val)),
             Statement::Bool(val) => output.push_str(&val.to_string()),
             Statement::Str(val) => output.push_str(&format!("\"{}\"", val.replace('"', "\"\""))),
             Statement::Integer(val) => output.push_str(&val.to_string()),
             Statement::Float(val) => output.push_str(&val.to_string()),
             Statement::Char(val) => output.push(val),
-            Statement::InternalStr(val) => output.push_str(&val.to_string()),
+            Statement::InternalStr(val) => output.push_str(&val),
             Statement::Class { ident, extends, props } => {
-                output.push_str(&self.indent(indent));
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
                 output.push_str(&format!("class {}", self.render_node(*ident, indent)?));
                 if let Some(extended) = extends {
                     output.push_str(&format!(": {}", self.render_node(*extended, indent)?));
                 }
                 match self.options.bracket_style {
                     BracketStyle::Allman => {
-                        if !props.is_empty() {
+                        if !props.is_empty() && self.options.new_lines {
                             output.push_str("\n");
                         }
-                        output.push_str(&self.indent(indent));
+                        if self.options.new_lines {
+                            output.push_str(&self.indent(indent));
+                        }
                     }
                     BracketStyle::Linux => output.push_str(" "),
                 }
-                output.push_str(if props.is_empty() { "{" } else { "{\n" });
+                output.push_str("{");
+                if !props.is_empty() && self.options.new_lines {
+                    output.push_str("\n");
+                }
                 output.push_str(&self.render_nodes(props, indent + 1)?);
-                output.push_str(&self.indent(indent));
-                output.push_str("};\n");
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
+                output.push_str("};");
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
             }
-            Statement::ClassDef(ident) => output.push_str(&format!("class {};\n", self.render_node(*ident, indent)?)),
-            Statement::ClassDelete(ident) => output.push_str(&format!("delete {};\n", self.render_node(*ident, indent)?)),
+            Statement::ClassDef(ident) => {
+                output.push_str(&format!("class {};", self.render_node(*ident, indent)?));
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
+            }
+            Statement::ClassDelete(ident) => {
+                output.push_str(&format!("delete {};", self.render_node(*ident, indent)?));
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
+            }
             Statement::Config(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
             Statement::Array(nodes) => {
                 output.push('{');
