@@ -5,7 +5,7 @@ item = _{ ((( prop | propexpand | class | classextends | classdef | classdelete 
 prop = { ((macro_call | ident) ~ "=" ~ value | identarray ~ "=" ~ array) }
 propexpand = { identarray ~ "+=" ~ array }
 
-ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+ident = @{ (ASCII_ALPHANUMERIC | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 value = _{
     bool |
     float |
