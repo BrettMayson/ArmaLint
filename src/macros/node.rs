@@ -62,7 +62,7 @@ macro_rules! get_message {
                     ($n.start.1).0,
                     Some(($n.start.1).1 + 8),
                     ident.len(),
-                    Some(if let Some(n) = &**o {
+                    Some(if let Some(n) = o {
                         format!(
                             "old value was `{}`",
                             match &n.statement {
@@ -77,7 +77,7 @@ macro_rules! get_message {
                     crate::HelpType::Note,
                 )
             }
-            crate::config::Statement::InvalidCall(ref v, ref c) => {
+            crate::config::Statement::InvalidCall(ref v, ref c, ref _o) => {
                 let ident = match &**c {
                     crate::config::Statement::MacroCall { ident, .. } => ident.clone(),
                     _ => panic!("Invalid call: {:#?}", c),

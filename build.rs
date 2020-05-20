@@ -35,7 +35,7 @@ enum Type {
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("cmds.rs");
-    let f = File::create(&dest_path).unwrap();
+    let _f = File::create(&dest_path).unwrap();
 
     let source = std::fs::read_to_string("sqf/chat.alcmds").unwrap();
 
@@ -95,9 +95,9 @@ fn atype(pair: pest::iterators::Pair<Rule>) -> Type {
         Rule::multiple => Type::_Multiple(inner.into_inner().next().unwrap().as_str().to_owned()),
         Rule::optional => Type::_Optional(inner.into_inner().next().unwrap().as_str().to_owned()),
         Rule::array => {
-            let mut items = inner.into_inner();
+            let items = inner.into_inner();
             let mut types = Vec::new();
-            while let Some(item) = items.next() {
+            for item in items {
                 println!("Array - {:?}", item);
                 types.push(atype(item));
             }

@@ -56,6 +56,7 @@ pub fn execute(input: &[String]) -> Result<(), ArmaLintError> {
 
     // Add commands here
     commands.push(Box::new(crate::commands::Lint {}));
+    commands.push(Box::new(crate::commands::Rapify {}));
 
     for command in commands.iter() {
         let sub = command.register();

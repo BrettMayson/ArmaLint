@@ -45,42 +45,75 @@ impl Renderer {
         let mut output = String::new();
         match statement {
             Statement::Property { ident, value, expand } => {
-                output.push_str(&self.indent(indent));
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
                 output.push_str(&format!(
-                    "{} {} {};\n",
+                    "{} {} {};{}",
                     self.render_node(*ident, indent)?,
                     if expand { "+=" } else { "=" },
-                    self.render_statement(value.statement, indent)?
+                    if let Statement::Unquoted(_) = value.statement {
+                        format!("\"{}\"", self.render_statement(value.statement, indent)?)
+                    } else {
+                        self.render_statement(value.statement, indent)?
+                    },
+                    if self.options.new_lines { "\n" } else { "" },
                 ));
             }
-            Statement::Ident(val) => output.push_str(&val.to_string()),
-            Statement::IdentArray(val) => output.push_str(&format!("{}[]", val.to_string())),
+            Statement::Ident(val) => output.push_str(&val),
+            Statement::IdentArray(val) => output.push_str(&format!("{}[]", val)),
             Statement::Bool(val) => output.push_str(&val.to_string()),
             Statement::Str(val) => output.push_str(&format!("\"{}\"", val.replace('"', "\"\""))),
             Statement::Integer(val) => output.push_str(&val.to_string()),
             Statement::Float(val) => output.push_str(&val.to_string()),
             Statement::Char(val) => output.push(val),
-            Statement::InternalStr(val) => output.push_str(&val.to_string()),
+            Statement::InternalStr(val) => output.push_str(&val),
             Statement::Class { ident, extends, props } => {
-                output.push_str(&self.indent(indent));
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
                 output.push_str(&format!("class {}", self.render_node(*ident, indent)?));
                 if let Some(extended) = extends {
                     output.push_str(&format!(": {}", self.render_node(*extended, indent)?));
                 }
                 match self.options.bracket_style {
                     BracketStyle::Allman => {
-                        output.push_str("\n");
-                        output.push_str(&self.indent(indent));
+                        if !props.is_empty() && self.options.new_lines {
+                            output.push_str("\n");
+                        }
+                        if self.options.new_lines {
+                            output.push_str(&self.indent(indent));
+                        } else {
+                            output.push_str(" ");
+                        }
                     }
                     BracketStyle::Linux => output.push_str(" "),
                 }
-                output.push_str(if props.is_empty() { "{" } else { "{\n" });
+                output.push_str("{");
+                if !props.is_empty() && self.options.new_lines {
+                    output.push_str("\n");
+                }
                 output.push_str(&self.render_nodes(props, indent + 1)?);
-                output.push_str(&self.indent(indent));
-                output.push_str("};\n");
+                if self.options.new_lines {
+                    output.push_str(&self.indent(indent));
+                }
+                output.push_str("};");
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
             }
-            Statement::ClassDef(ident) => output.push_str(&format!("class {};\n", self.render_node(*ident, indent)?)),
-            Statement::ClassDelete(ident) => output.push_str(&format!("delete {};\n", self.render_node(*ident, indent)?)),
+            Statement::ClassDef(ident) => {
+                output.push_str(&format!("class {};", self.render_node(*ident, indent)?));
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
+            }
+            Statement::ClassDelete(ident) => {
+                output.push_str(&format!("delete {};", self.render_node(*ident, indent)?));
+                if self.options.new_lines {
+                    output.push_str("\n");
+                }
+            }
             Statement::Config(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
             Statement::Array(nodes) => {
                 output.push('{');
@@ -94,13 +127,26 @@ impl Renderer {
                 output.push('}');
             }
             Statement::Processed(stmt, _) => output.push_str(&self.render_statement(*stmt, indent)?),
-            Statement::Defined(node, _) => output.push_str(&self.render_node(*node.clone(), indent)?),
+            Statement::Defined(node, _) => output.push_str(&self.render_node(*node, indent)?),
             Statement::Inserted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
-            // Should be processed out
             Statement::Unquoted(nodes) => output.push_str(&self.render_nodes(nodes, indent)?),
+            Statement::Spaced(nodes) => {
+                let mut pieces = Vec::new();
+                for n in nodes {
+                    pieces.push(self.render_node(n, indent)?)
+                }
+                output.push_str(&pieces.join(" "));
+            }
+            Statement::Bracket(node) => output.push_str(&format!("({})", self.render_node(*node, indent)?)),
+            Statement::Square(node) => output.push_str(&format!("[{}]", self.render_node(*node, indent)?)),
+            Statement::Quoted(stmt) => {
+                output.push_str(&format!("\"{}\"", self.render_statement(*stmt, indent)?.replace('"', "\"\"")))
+            }
+            // Should be processed out
             Statement::FILE => panic!("A file marker was not processed out, this should be reported as a bug"),
             Statement::LINE => panic!("A line marker was not processed out, this should be reported as a bug"),
             Statement::IfDef { .. } => panic!("An IfDef marker was not processed out, this should be reported as a bug"),
+            Statement::IfNDef { .. } => panic!("An IfNDef marker was not processed out, this should be reported as a bug"),
             Statement::MacroBody(_) => panic!("A MacroBody marker was not processed out, this should be reported as a bug"),
             Statement::MacroCallArg(_) => {
                 panic!("A MacroCallArg marker was not processed out, this should be reported as a bug")
@@ -108,9 +154,9 @@ impl Renderer {
             // Ignored
             Statement::Define { .. } => {}
             Statement::DefineMacro { .. } => {}
-            Statement::FlagAsIdent(_, _) => {}
+            Statement::FlagAsIdent(_, _, _) => {}
             Statement::Gone => {}
-            Statement::InvalidCall(_, _) => {}
+            Statement::InvalidCall(_, _, _) => {}
             Statement::MacroCall { .. } => {}
             Statement::Undefine(_) => {}
             Statement::Undefined(_, _) => {}

@@ -14,6 +14,7 @@ impl<T, E: std::fmt::Debug + std::fmt::Display> PrintableError<T, E> for Result<
 #[derive(Debug)]
 pub enum ArmaLintError {
     ParsingError {
+        file: String,
         positives: Vec<String>,
         negatives: Vec<String>,
         position: pest::error::LineColLocation,
@@ -51,8 +52,9 @@ impl std::fmt::Display for ArmaLintError {
             ArmaLintError::ParsingError {
                 ref positives,
                 ref position,
+                ref file,
                 ..
-            } => write!(f, "Expected {:?} at {:?}", positives, position),
+            } => write!(f, "Expected {:?} at {:?} in {}", positives, position, file),
         }
     }
 }

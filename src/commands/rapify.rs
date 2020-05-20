@@ -3,13 +3,13 @@ use std::path::PathBuf;
 
 use crate::{ArmaLintError, Command};
 
-pub struct Lint {}
-impl Command for Lint {
+pub struct Rapify {}
+impl Command for Rapify {
     fn register(&self) -> clap::App {
-        clap::SubCommand::with_name("lint")
+        clap::SubCommand::with_name("rapify")
             .version(*crate::VERSION)
-            .about("Lint a file")
-            .arg(clap::Arg::with_name("file").help("File to lint").required(true))
+            .about("Rapify a file")
+            .arg(clap::Arg::with_name("file").help("File to rapify").required(true))
     }
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), ArmaLintError> {
@@ -32,11 +32,12 @@ impl Command for Lint {
                     node_error!(processed.files, error);
                 }
 
-                let render = crate::config::Renderer::default();
-                let out = render.render(processed)?;
-                println!("====================");
-                println!("{}", out);
-                println!("====================");
+                let simple = crate::config::rapify::Config::from_ast(processed).unwrap();
+                let mut rapified = std::io::Cursor::new(Vec::new());
+                simple.write_rapified(&mut rapified).unwrap();
+                use std::io::Write;
+                let mut out = create_file!("out.rap").unwrap();
+                out.write_all(rapified.get_ref())?;
             }
             _ => {
                 return Err(ArmaLintError::InvalidInput(format!(
