@@ -1,5 +1,3 @@
-use armalint;
-
 const FILE: &str = "tests/tokens.cpp";
 const FILENAME: &str = "tokens.cpp";
 

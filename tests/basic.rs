@@ -1,4 +1,3 @@
-use armalint;
 use armalint::config::{Node, Statement};
 
 const FILE: &str = "tests/basic.cpp";

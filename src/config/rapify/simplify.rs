@@ -24,6 +24,7 @@ impl Config {
             let renderer = super::super::Renderer::new(super::super::RenderOptions::single_line());
             let file = ast.config.file.to_string();
             let rendered = renderer.render(ast).unwrap();
+            println!("{}: |{}|", file, rendered);
             let ast = crate::config::parse(&file, &rendered).unwrap();
             let mut preprocessor = crate::config::PreProcessor::new();
             preprocessor.process(ast).unwrap()
@@ -100,6 +101,13 @@ pub fn get_value(statement: Statement, expand: bool) -> Result<Entry, ArmaLintEr
             expand,
             elements: get_array(val)?,
         }),
+        Statement::Inserted(ref nodes) => {
+            let mut ret = String::new();
+            for n in nodes {
+                ret.push_str(&n.statement.string().unwrap());
+            }
+            Entry::Str(ret)
+        }
         _ => {
             return Err(ArmaLintError::InvalidProperty(format!(
                 "Invalid property type `{}`",

@@ -220,16 +220,42 @@ impl Node {
                 }
                 Rule::define => {
                     let mut parts = pair.into_inner();
+                    let ident = String::from(parts.next().unwrap().as_str());
                     Statement::Define {
-                        ident: String::from(parts.next().unwrap().as_str()),
-                        value: Some(Box::new({
-                            let (n, i) = Node::from_expr(file, wd, source, parts.next().unwrap(), resolver)?;
-                            i.iter().for_each(|x| included.push(x.clone()));
-                            n
-                        })),
+                        ident: ident.clone(),
+                        value: {
+                            if let Some(body) = parts.next() {
+                                Some(if let Ok(stmt) = super::super::parse_with_resolver(
+                                    &format!("MACRO:{}", ident),
+                                    wd.clone(),
+                                    &format!("{};", body.as_str().trim_end_matches('\n').replace("\\\n", "\n")),
+                                    resolver,
+                                ) {
+                                    included.push((
+                                        format!("MACRO:{}", ident),
+                                        Some((file.to_string(), body.as_span().start_pos().line_col().0)),
+                                        body.as_str().trim_end_matches('\n').replace("\\\n", "\n"),
+                                    ));
+                                    Box::new(stmt.config)
+                                } else {
+                                    Box::new({
+                                        let (n, i) = Node::from_expr(file, wd, source, body.clone(), resolver)?;
+                                        i.iter().for_each(|x| included.push(x.clone()));
+                                        n
+                                    })
+                                })
+                            } else {
+                                None
+                            }
+                        },
+                        // value: Some(Box::new({
+                        //     let (n, i) = Node::from_expr(file, wd, source, parts.next().unwrap(), resolver)?;
+                        //     i.iter().for_each(|x| included.push(x.clone()));
+                        //     n
+                        // })),
                     }
                 }
-                Rule::define_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
+                // Rule::define_body => Statement::MacroBody(pair.as_str().trim_end_matches('\n').to_owned()),
                 Rule::define_flag => Statement::Define {
                     ident: String::from(pair.into_inner().next().unwrap().as_str()),
                     value: None,
@@ -299,7 +325,7 @@ impl Node {
                         .collect::<ResultNodeVec>()?,
                 ),
                 //Rule::macro_arg_unquoted => Statement::Ident(pair.as_str().to_string()),
-                Rule::macro_arg_char => Statement::Char(pair.as_str().chars().nth(0).unwrap()),
+                Rule::macro_arg_char => Statement::Char(pair.as_str().chars().next().unwrap()),
                 Rule::macro_arg_unquoted => Statement::Unquoted({
                     let nodes = pair
                         .into_inner()

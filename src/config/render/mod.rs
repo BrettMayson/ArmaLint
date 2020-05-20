@@ -52,7 +52,11 @@ impl Renderer {
                     "{} {} {};{}",
                     self.render_node(*ident, indent)?,
                     if expand { "+=" } else { "=" },
-                    self.render_statement(value.statement, indent)?,
+                    if let Statement::Unquoted(_) = value.statement {
+                        format!("\"{}\"", self.render_statement(value.statement, indent)?)
+                    } else {
+                        self.render_statement(value.statement, indent)?
+                    },
                     if self.options.new_lines { "\n" } else { "" },
                 ));
             }
@@ -79,6 +83,8 @@ impl Renderer {
                         }
                         if self.options.new_lines {
                             output.push_str(&self.indent(indent));
+                        } else {
+                            output.push_str(" ");
                         }
                     }
                     BracketStyle::Linux => output.push_str(" "),

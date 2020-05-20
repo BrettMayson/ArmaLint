@@ -1,5 +1,3 @@
-use armalint;
-
 const FILE: &str = "tests/define.cpp";
 const FILENAME: &str = "define.cpp";
 

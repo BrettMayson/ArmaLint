@@ -249,6 +249,7 @@ impl PreProcessor {
     pub fn get_ident(&mut self, ident: &str, node: &Node) -> Result<Node, crate::ArmaLintError> {
         if let Some(defined) = self.defines.get(ident) {
             if let Some(val) = defined.1.clone() {
+                
                 return Ok(self.process_node(*val, Some(node.clone()))?);
             } else {
                 self.report.errors.push({
